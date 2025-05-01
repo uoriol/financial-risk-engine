@@ -1,0 +1,9 @@
+﻿<div style="background-color: @ColorCode; height: @Height;"></div>
+
+@code {
+    [Parameter]
+    public string ColorCode { get; set; } = "#8c98d1";
+
+    [Parameter]
+    public string Height { get; set; } = "200px";
+}

@@ -1,0 +1,22 @@
+﻿@page "/"
+@using FinancialRiskEngine.Client.Components.Display
+@using FinancialRiskEngine.Engine
+@inject NavigationManager _navigation
+
+<div style="margin: 3em">
+    <MudGrid>
+        <MainCard ColorCode="#2196f3" Title="Interest Rates" />
+        <MainCard ColorCode="#2196f3" Title="Return simulator" />
+        <MainCard Title="Risk/Return Analysis" />
+        <MainCard ColorCode="#e69670" Title="Configurations" />
+        <MainCard ImageLink="/img/documents.jpeg" Title="Resources" Description="To find articles and other documents." OnButtonClicked="NavigateToResourcesPage" />
+    </MudGrid>
+</div>
+
+@code {
+    public Class1 class1 { get; set; } = new Class1();
+    private async Task NavigateToResourcesPage()
+    {
+        _navigation.NavigateTo("resources");
+    }
+}

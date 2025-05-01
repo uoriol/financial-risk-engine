@@ -1,0 +1,44 @@
+﻿<MudItem xs="11" sm="11" md="5" lg="5">
+    <MudCard Style="text-align: center">
+        @if (ShowImage)
+        {
+            <MudCardMedia Image="@ImageLink" Height="200" />
+        } else
+        {
+            <MudCardColorHeaderImage ColorCode="@ColorCode" />
+        }
+        <MudCardHeader>
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@Title</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            <MudText>@Description</MudText>
+        </MudCardContent>
+        <MudCardActions Style="display: inline-flex; justify-content: center; margin-bottom: 2em">
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="float: right" OnClick="@(async () => await OnButtonClicked.InvokeAsync())">Go</MudButton>
+        </MudCardActions>
+    </MudCard>
+</MudItem>
+
+@code {
+    [Parameter]
+    public string? ImageLink { get; set; } = null;
+
+    [Parameter]
+    public string ColorCode { get; set; } = "#8c98d1";
+
+    [Parameter]
+    public required string Title { get; set; }
+
+    [Parameter]
+    public string Description { get; set; } = "No description provided";
+
+    [Parameter]
+    public EventCallback OnButtonClicked { get; set; }
+
+    private bool ShowImage => ImageLink != null;
+}

@@ -1,0 +1,79 @@
+﻿@page "/resources"
+@using Newtonsoft.Json
+@using FinancialRiskEngine.Client.Components.Documents
+@using FinancialRiskEngine.Client.HubConnections
+@using FinancialRiskEngine.Client.Services
+@inject IJSRuntime JSRuntime
+@inject AccountService _accountService
+
+@if(_selectedSection == null)
+{
+    <div style="margin: 3em">
+        <MudGrid>
+            <MudItem xs="12" sm="6" md="4" lg="4">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Generate reports <MudIcon Icon="@Icons.Material.Filled.DynamicFeed" /></MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText>Description.</MudText>
+                        <MudText><MudChip T="string" Color="Color.Error">PDF</MudChip></MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="float: right" OnClick="@DisplayParallelDownloadSection">Go</MudButton>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+
+            <MudItem xs="12" sm="6" md="4" lg="4">
+                <MudCard>
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h6">Another things</MudText>
+                        </CardHeaderContent>
+                        <CardHeaderActions>
+                            <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
+                        </CardHeaderActions>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudText>Use this resource to do something else</MudText>
+                        <MudText><MudChip T="string" Color="Color.Success">Returns</MudChip></MudText>
+                    </MudCardContent>
+                    <MudCardActions>
+                        <MudText Color="Color.Error">NOT IMPLEMENTED</MudText>
+                    </MudCardActions>
+                </MudCard>
+            </MudItem>
+        </MudGrid>
+    </div>
+}
+
+@{
+    switch (_selectedSection)
+    {
+        case "download-in-parallel":
+            break;
+        default:
+            break;
+    }
+}
+
+
+@code {
+    private string? _selectedSection = null;
+
+    private void DisplayParallelDownloadSection()
+    {
+        _selectedSection = "download-in-parallel";
+    }
+
+    private void GoBackToTemplateMenu()
+    {
+        _selectedSection = null;
+    }
+}

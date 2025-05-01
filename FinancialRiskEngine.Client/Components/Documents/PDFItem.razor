@@ -1,0 +1,37 @@
+﻿@using System.Collections
+@using FinancialRiskEngine.Client.Services
+@using FinancialRiskEngine.Client.Utils.Managers
+@inject IJSRuntime _jsRuntime
+@inject FileService _fileService
+
+<MudItem xs="12" sm="6" md="6" lg="4">
+    <MudCard Style="background: #fafafa">
+        <MudCardContent>
+            <div style="display: flex; align-items: center; justify-content: space-between;">
+                <MudChip T="string" Variant="Variant.Outlined" Color="Color.Default">
+                    <img style="height: 1.3em; margin-right: 0.5em;" src="/img/pdf_file_icon.svg.png" />
+                    @_fileNameExt
+                </MudChip>
+                <div>
+                    <MudFab Color="Color.Info" StartIcon="@Icons.Material.Outlined.RemoveRedEye" Size="Size.Small" Style="margin-right: 0.2em" />
+                    <MudFab Color="Color.Primary" StartIcon="@Icons.Material.Filled.Download" Size="Size.Small" OnClick="@(async () => await DownloadBlob())" />
+                </div>
+            </div>
+        </MudCardContent>
+    </MudCard>
+</MudItem>
+
+@code {
+    [Parameter]
+    public string FileName { get; set; } = string.Empty;
+
+    [Parameter]
+    public string ContainerName { get; set; } = string.Empty;
+
+    private string _fileNameExt => FileName.Count() > 40 ? String.Concat(new string(FileName.Take(35).ToArray()), "... ", ".pdf") : String.Concat(FileName, ".pdf");
+
+    private async Task DownloadBlob()
+    {
+        await _fileService.DownloadBlob(FileName, ContainerName, _jsRuntime);
+    }
+}

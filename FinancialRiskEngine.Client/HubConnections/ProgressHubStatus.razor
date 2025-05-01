@@ -1,0 +1,89 @@
+﻿@using Microsoft.AspNetCore.SignalR.Client
+@using FinancialRiskEngine.Client.Components.Documents
+@inject NavigationManager NavigationManager
+@if (templates.Where(x => x.Value != "not started").Any())
+{
+    @if (ProcessTitle != string.Empty)
+    {
+        @if (templates.Count() == Value)
+        {
+            <p>@ProcessTitle <MudIcon Icon="@Icons.Material.Filled.CheckCircleOutline" Size="Size.Small" Color="Color.Success" /></p>
+        }
+        else
+        {
+            <p>@ProcessTitle <MudProgressCircular Color="Color.Primary" Size="Size.Small" Indeterminate="true" /></p>
+        }
+    }
+    <MudProgressLinear Color="Color.Primary" Value="@Value" Class="my-7" Max="templates.Count()" />
+
+    @foreach (var kvp in templates.Where(x => x.Value != "not started"))
+    {
+        <p><strong>@kvp.Key</strong>: @kvp.Value</p>
+    }
+}
+
+
+@if (DisplayBlobs)
+{
+    <PDFCollection ContainerName="generatedreports" FileNames="@templates.Where(k => k.Value == "finished").Select(x => x.Key).ToList()" />
+}
+
+@code {
+    [Parameter]
+    public Dictionary<string, string> templates { get; set; } = new()
+    {
+        { "report XYZ", "running" },
+        { "report Oriol", "running" },
+        { "Report 1", "running" },
+        { "Report 2", "running" },
+        { "Report 3", "running" }
+    };
+
+    [Parameter]
+    public string HubId { get; set; } = "ProgressUpdate";
+
+    [Parameter]
+    public string ProcessTitle { get; set; } = string.Empty;
+
+    [Parameter]
+    public bool DisplayBlobs { get; set; } = false;
+
+    private int Value => templates.Where(k => k.Value == "finished").Count();
+
+    private HubConnection? _hubConnection;
+    private string statusMessage = "Waiting for updates...";
+
+    protected override async Task OnInitializedAsync()
+    {
+        _hubConnection = new HubConnectionBuilder()
+            .WithUrl(NavigationManager.ToAbsoluteUri("https://localhost:7071/progresshub")) // or your hosted server URL
+            .WithAutomaticReconnect()
+            .Build();
+
+        _hubConnection.On<string, string>(HubId, (taskId, progress) =>
+        {
+            if (templates.ContainsKey(taskId))
+            {
+                templates[taskId] = progress;
+                InvokeAsync(StateHasChanged); // Ensure it runs on UI thread
+            }
+        });
+
+        await _hubConnection.StartAsync();
+    }
+
+    public async Task GetBlob(string template)
+    {
+        
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+
+
+}
