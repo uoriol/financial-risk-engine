@@ -1,0 +1,76 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+@using static FinancialRiskEngine.Engine.Enums.Enums
+
+<MudDrawer @bind-Open="_drawerOpen" Anchor="Anchor.End" Elevation="2" ClipMode="DrawerClipMode.Always" Variant="DrawerVariant.Persistent">
+    <MudDrawerHeader>
+        <MudText Typo="Typo.h6">Edit Interest Rate Parameters</MudText>
+    </MudDrawerHeader>
+    <div style="margin:1em">
+        <MudTextField @bind-Value="Parameters.Amount" Label="Amount" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+        <MudTextField @bind-Value="Parameters.InterestRate" Label="Interest Rate (%)" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+        <MudTextField @bind-Value="Parameters.Years" Label="Years" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+        <MudSelect T="CompoudingFrequency" Label="Compounding Frequency" @bind-Value="Parameters.CompoudingFrequency" Style="margin-bottom: 5em">
+            @foreach (var freq in Enum.GetValues<CompoudingFrequency>())
+            {
+                <MudSelectItem Value="freq">@freq</MudSelectItem>
+            }
+        </MudSelect>
+
+        <MudButton Color="Color.Primary" OnClick="SaveChangesDrawer">Save</MudButton>
+        <MudButton Color="Color.Secondary" OnClick="CancelChanges">Cancel</MudButton>
+    </div>
+</MudDrawer>
+
+@code {
+    [Parameter]
+    public InterestRateParameters Parameters { get; set; }
+
+    [Parameter]
+    public EventCallback<InterestRateParameters> ParametersChanged { get; set; }
+
+    private InterestRateParameters _backup;
+    private bool _drawerOpen;
+
+    public void ToggleEditor()
+    {
+        if (_drawerOpen)
+        {
+            CloseDrawer();
+        } else
+        {
+            OpenEditor();
+        }
+    }
+
+    public void OpenEditor()
+    {
+        _backup = new InterestRateParameters
+        {
+            Amount = Parameters.Amount,
+            InterestRate = Parameters.InterestRate,
+            Years = Parameters.Years,
+            CompoudingFrequency = Parameters.CompoudingFrequency
+        };
+
+        _drawerOpen = true;
+    }
+
+    private async Task SaveChangesDrawer()
+    {
+        await ParametersChanged.InvokeAsync(Parameters);
+    }
+
+    private async Task CloseDrawer()
+    {
+        _drawerOpen = false;
+    }
+
+    private void CancelChanges()
+    {
+        Parameters.Amount = _backup.Amount;
+        Parameters.InterestRate = _backup.InterestRate;
+        Parameters.Years = _backup.Years;
+        Parameters.CompoudingFrequency = _backup.CompoudingFrequency;
+        _drawerOpen = false;
+    }
+}

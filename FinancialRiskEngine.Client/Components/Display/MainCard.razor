@@ -19,7 +19,14 @@
             <MudText>@Description</MudText>
         </MudCardContent>
         <MudCardActions Style="display: inline-flex; justify-content: center; margin-bottom: 2em">
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="float: right" OnClick="@(async () => await OnButtonClicked.InvokeAsync())">Go</MudButton>
+            @if (Loading)
+            {
+                <MudProgressCircular Color="Color.Primary" Indeterminate="true" />
+            }
+            else
+            {
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="float: right" OnClick="@(async () => await OnButtonClicked.InvokeAsync())">Go</MudButton>
+            }
         </MudCardActions>
     </MudCard>
 </MudItem>
@@ -39,6 +46,9 @@
 
     [Parameter]
     public EventCallback OnButtonClicked { get; set; }
+
+    [Parameter]
+    public bool Loading { get; set; } = false;
 
     private bool ShowImage => ImageLink != null;
 }

@@ -1,10 +1,4 @@
 ﻿using FinancialRiskEngine.Engine.Classes.Interfaces;
-using FinancialRiskEngine.Engine.Enums;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using static FinancialRiskEngine.Engine.Enums.Enums;
 
 namespace FinancialRiskEngine.Engine.Classes.Financial

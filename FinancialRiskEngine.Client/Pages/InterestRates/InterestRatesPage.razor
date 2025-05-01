@@ -1,0 +1,32 @@
+﻿@page "/interest-rates"
+@inject NavigationManager _navigation
+
+<div style="margin: 3em">
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4" lg="4">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Interest Calculator Component</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>A simple and reusable component that calculates the final amount based on an initial principal, a time period, and an interest rate.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="float: right" OnClick="@DisplayInterestCalculatorComponent">Go</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</div>
+
+@code {
+    private void DisplayInterestCalculatorComponent()
+    {
+        _navigation.NavigateTo("/interest-rates/interest-calculator");
+    }
+}

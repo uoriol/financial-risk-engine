@@ -32,6 +32,17 @@ namespace FinancialRiskEngine.Engine.Enums
             STRESS = 3
         }
 
+        public enum CompoudingFrequency
+        {
+            DAILY = 1,
+            WEEKLY = 2,
+            MONTHLY = 3,
+            QUARTERLY = 4,
+            SEMI_ANNUALLY = 5,
+            ANNUALLY = 6,
+            CONTINUOUS = 7
+        }
+
         public static string GetVolatilityName(VolatilityScenario scenario)
         {
             if (scenario == VolatilityScenario.STRESS) { return "STRESS"; }
