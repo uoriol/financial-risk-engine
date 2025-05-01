@@ -32,7 +32,7 @@ namespace FinancialRiskEngine.Engine.Enums
             STRESS = 3
         }
 
-        public enum CompoudingFrequency
+        public enum CompoundingFrequency
         {
             DAILY = 1,
             WEEKLY = 2,

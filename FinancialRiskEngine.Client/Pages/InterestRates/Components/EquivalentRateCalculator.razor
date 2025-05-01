@@ -1,0 +1,65 @@
+﻿@page "/interest-rates/equivalent-rate-calculator"
+@using FinancialRiskEngine.Engine.Calculators
+@using FinancialRiskEngine.Engine.Classes.Financial
+@using static FinancialRiskEngine.Engine.Enums.Enums
+
+
+<div style="max-width: 50vw; margin-left: 3em; margin-top: 4em">
+    <MudStack Spacing="4">
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="CompoundingFrequency" Label="Compounding Frequency 1" @bind-Value="Frequency1" Style="margin-bottom: 1em">
+                            @foreach (var freq in Enum.GetValues<CompoundingFrequency>())
+                            {
+                                <MudSelectItem Value="freq">@freq</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="CompoundingFrequency" Label="Compounding Frequency 2" @bind-Value="Frequency2" Style="margin-bottom: 1em">
+                            @foreach (var freq in Enum.GetValues<CompoundingFrequency>())
+                            {
+                                <MudSelectItem Value="freq">@freq</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="Rate1" Label="Rate 1" Variant="Variant.Outlined" Style="margin-bottom: 4em" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField Value="CalculatedRate2" Disabled Label="Rate 2 (Calculated)" Variant="Variant.Outlined" Style="margin-bottom: 4em" />
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="3">
+            <MudCardContent>
+                @if (CalculatedRate2 != null)
+                {
+                    <MudText Typo="Typo.h5" Color="Color.Primary">
+                        Calculated Rate 2: @CalculatedRate2
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.subtitle1" Color="Color.Warning">
+                        Please enter valid parameters to calculate the future value.
+                    </MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudStack>
+</div>
+
+@code {
+    private decimal Rate1 { get; set; } = 0.1m;
+
+    private CompoundingFrequency Frequency1 { get; set; } = CompoundingFrequency.ANNUALLY;
+
+    private CompoundingFrequency Frequency2 { get; set; } = CompoundingFrequency.CONTINUOUS;
+
+    private decimal CalculatedRate2 => InterestRateCalculator.GetEquivalentRate(Rate1, Frequency1, Frequency2);
+}

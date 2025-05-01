@@ -21,6 +21,24 @@
                 </MudCardActions>
             </MudCard>
         </MudItem>
+        <MudItem xs="12" sm="6" md="4" lg="4">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Equivalent Rate Calculator Component</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>A component that calculates a the equivalent interest rate given two different compounding frequencies.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="float: right" OnClick="@DisplayEquivalentRateCalculatorComponent">Go</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
     </MudGrid>
 </div>
 
@@ -28,5 +46,10 @@
     private void DisplayInterestCalculatorComponent()
     {
         _navigation.NavigateTo("/interest-rates/interest-calculator");
+    }
+
+    private void DisplayEquivalentRateCalculatorComponent()
+    {
+        _navigation.NavigateTo("/interest-rates/equivalent-rate-calculator");
     }
 }

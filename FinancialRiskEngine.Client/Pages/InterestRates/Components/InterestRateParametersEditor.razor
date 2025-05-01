@@ -9,8 +9,8 @@
         <MudTextField @bind-Value="Parameters.Amount" Label="Amount" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
         <MudTextField @bind-Value="Parameters.InterestRate" Label="Interest Rate (%)" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
         <MudTextField @bind-Value="Parameters.Years" Label="Years" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
-        <MudSelect T="CompoudingFrequency" Label="Compounding Frequency" @bind-Value="Parameters.CompoudingFrequency" Style="margin-bottom: 5em">
-            @foreach (var freq in Enum.GetValues<CompoudingFrequency>())
+        <MudSelect T="CompoundingFrequency" Label="Compounding Frequency" @bind-Value="Parameters.CompoundingFrequency" Style="margin-bottom: 5em">
+            @foreach (var freq in Enum.GetValues<CompoundingFrequency>())
             {
                 <MudSelectItem Value="freq">@freq</MudSelectItem>
             }
@@ -49,7 +49,7 @@
             Amount = Parameters.Amount,
             InterestRate = Parameters.InterestRate,
             Years = Parameters.Years,
-            CompoudingFrequency = Parameters.CompoudingFrequency
+            CompoundingFrequency = Parameters.CompoundingFrequency
         };
 
         _drawerOpen = true;
@@ -70,7 +70,7 @@
         Parameters.Amount = _backup.Amount;
         Parameters.InterestRate = _backup.InterestRate;
         Parameters.Years = _backup.Years;
-        Parameters.CompoudingFrequency = _backup.CompoudingFrequency;
+        Parameters.CompoundingFrequency = _backup.CompoundingFrequency;
         _drawerOpen = false;
     }
 }
