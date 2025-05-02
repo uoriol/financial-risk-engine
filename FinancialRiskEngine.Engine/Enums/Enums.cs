@@ -43,6 +43,16 @@ namespace FinancialRiskEngine.Engine.Enums
             CONTINUOUS = 7
         }
 
+        public enum PaymentFrequency
+        {
+            DAILY = 1,
+            WEEKLY = 2,
+            MONTHLY = 3,
+            QUARTERLY = 4,
+            SEMI_ANNUALLY = 5,
+            ANNUALLY = 6
+        }
+
         public static string GetVolatilityName(VolatilityScenario scenario)
         {
             if (scenario == VolatilityScenario.STRESS) { return "STRESS"; }
