@@ -1,5 +1,5 @@
 ﻿@page "/interest-rates/bond-yield-calculator"
-
+@inject ISnackbar Snackbar
 @using FinancialRiskEngine.Engine.Calculators
 @using static FinancialRiskEngine.Engine.Enums.Enums
 
@@ -79,12 +79,11 @@
     </MudStack>
 </div>
 
-
 @code {
     // Inputs
     private decimal _par { get; set; } = 100;
     private decimal _marketPrice { get; set; } = 98.39m;
-    private decimal _payment { get; set; } = 0.03m; // 3%
+    private decimal _payment { get; set; } = 3; // 3%
     private decimal _paymentPeriods { get; set; } = 4;
     private PaymentFrequency _paymentFrequency = PaymentFrequency.SEMI_ANNUALLY;
 
@@ -103,9 +102,20 @@
 
     private async Task GetBondYield()
     {
-        (_yield, _assumptions1, _assumptions2) = InterestRateCalculator.GetBondYield(_par, _marketPrice, _payment, _paymentPeriods, _paymentFrequency);
-        await GetHelperClass();
-        StateHasChanged();
+        try
+        {
+            if(_marketPrice <= 0 || _par <= 0 || _payment <= 0 || _paymentPeriods <= 0)
+            {
+                throw new Exception();
+            }
+            (_yield, _assumptions1, _assumptions2) = InterestRateCalculator.GetBondYield(_par, _marketPrice, _payment, _paymentPeriods, _paymentFrequency);
+            await GetHelperClass();
+            StateHasChanged();
+        } catch
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopRight;
+            Snackbar.Add("Unable to run calculations. Modify the inputs and try again", Severity.Error);
+        }
     }
 
     private async Task GetHelperClass()

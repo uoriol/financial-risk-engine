@@ -135,6 +135,24 @@ namespace FinancialRiskEngine.Engine.Calculators
                     break;
                 }
 
+                // Both too high or too low
+                if (price1 > price && price2 > price)
+                {
+                    // Both too high -> yields too low -> increase both
+                    assumption1 += slideValue;
+                    assumption2 += slideValue;
+                    currentIteration++;
+                    continue;
+                }
+                else if (price1 < price && price2 < price)
+                {
+                    // Both too low -> yields too high -> decrease both
+                    assumption1 -= slideValue;
+                    assumption2 -= slideValue;
+                    currentIteration++;
+                    continue;
+                }
+
                 // The higher the price, the lower the yield
                 if (price1 < price)
                 {
