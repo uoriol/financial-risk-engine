@@ -1,0 +1,160 @@
+﻿@page "/interest-rates/bond-yield-calculator"
+
+@using FinancialRiskEngine.Engine.Calculators
+@using static FinancialRiskEngine.Engine.Enums.Enums
+
+<div style="max-width: 50vw; margin-left: 3em; margin-top: 4em">
+    <MudStack Spacing="4">
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_par" Label="Par Value" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_marketPrice" Label="Market Price" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_payment" Label="Payment Value" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="PaymentFrequency" Label="Payment Frequency" @bind-Value="_paymentFrequency" Style="margin-bottom: 1em">
+                            @foreach (var freq in Enum.GetValues<PaymentFrequency>())
+                            {
+                                <MudSelectItem Value="freq">@freq</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="10">
+                        <MudTextField @bind-Value="_paymentPeriods" Label="Payment Periods" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+                    </MudItem>
+                    <MudItem xs="12" sm="2">
+                        <MudButton Color="Color.Primary" OnClick="@GetBondYield">Get Bond Yield</MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="12">
+                        <MudTable Items="_rows" Elevation="1" Dense="true">
+                            <HeaderContent>
+                                <MudTh>Assumption 1</MudTh>
+                                <MudTh>Assumption 2</MudTh>
+                                <MudTh>Mean</MudTh>
+                                <MudTh>Δ (Abs Diff)</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd>@context.Assumption1</MudTd>
+                                <MudTd>@context.Assumption2</MudTd>
+                                <MudTd>@context.Mean</MudTd>
+                                <MudTd Style="@GetCellStyle(context.Difference)">
+                                    @context.Difference
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="3">
+            <MudCardContent>
+                @if (_yield != null && _assumptions1.Count() == _rows.Count())
+                {
+                    <MudText Typo="Typo.h5" Color="Color.Primary">
+                        Bond Yield: @_yield
+                    </MudText>
+                }
+                else
+                {
+                    <MudText Typo="Typo.subtitle1" Color="Color.Primary">
+                        Simulating slow calculation to explain the steps...
+                    </MudText>
+                }
+            </MudCardContent>
+        </MudCard>
+    </MudStack>
+</div>
+
+
+@code {
+    // Inputs
+    private decimal _par { get; set; } = 100;
+    private decimal _marketPrice { get; set; } = 98.39m;
+    private decimal _payment { get; set; } = 0.03m; // 3%
+    private decimal _paymentPeriods { get; set; } = 4;
+    private PaymentFrequency _paymentFrequency = PaymentFrequency.SEMI_ANNUALLY;
+
+    // Outputs
+    private decimal _yield { get; set; }
+    private List<decimal> _assumptions1 { get; set; } = new List<decimal>();
+    private List<decimal> _assumptions2 { get; set; } = new List<decimal>();
+
+    // Helper
+    private List<YieldStep> _rows = new List<YieldStep>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await GetBondYield();
+    }
+
+    private async Task GetBondYield()
+    {
+        (_yield, _assumptions1, _assumptions2) = InterestRateCalculator.GetBondYield(_par, _marketPrice, _payment, _paymentPeriods, _paymentFrequency);
+        await GetHelperClass();
+        StateHasChanged();
+    }
+
+    private async Task GetHelperClass()
+    {
+        _rows = new List<YieldStep>();
+        for (int i = 0; i < _assumptions1.Count; i++)
+        {
+            _rows.Add(new YieldStep
+                {
+                    Assumption1 = _assumptions1[i],
+                    Assumption2 = _assumptions2[i]
+                });
+
+            StateHasChanged(); // Trigger UI update
+            await Task.Delay(400); // Delay before showing the next row
+        }
+    }
+
+    // private string GetCellStyle(decimal diff)
+    // {
+    //     // Range: 1.0 (white) -> 0.00001 (blue)
+    //     var normalized = (double)(1.0m - Math.Clamp(diff, 0.00001m, 1.0m));
+    //     int blueIntensity = (int)(normalized * 255);
+
+    //     return $"background: rgb({255 - blueIntensity}, {255 - blueIntensity}, 255)";
+    // }
+
+    private string GetCellStyle(decimal diff)
+    {
+        double clampedDiff = Math.Clamp((double)diff, 0.00001, 1.0);
+
+        // Logarithmic normalization
+        double normalized = Math.Log10(1.0 / clampedDiff) / Math.Log10(1.0 / 0.00001);
+
+        // Background: interpolate white to blue
+        int rgb = (int)(255 * (1 - normalized));
+        string bgColor = $"rgb({rgb}, {rgb}, 255)";
+
+        // Text color: white if background is dark
+        string textColor = (rgb < 128) ? "white" : "black";
+
+        return $"background-color: {bgColor}; color: {textColor}";
+    }
+
+    public class YieldStep
+    {
+        public decimal Assumption1 { get; set; }
+        public decimal Assumption2 { get; set; }
+        public decimal Mean => (Assumption1 + Assumption2) / 2;
+        public decimal Difference => Math.Abs(Assumption1 - Assumption2);
+    }
+}

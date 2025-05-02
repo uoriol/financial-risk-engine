@@ -99,7 +99,7 @@ namespace FinancialRiskEngine.Engine.Calculators
             }
         }
 
-        public static decimal GetBondYield(decimal par, decimal price, decimal payment, decimal paymentPeriods, PaymentFrequency paymentFrequency)
+        public static (decimal, List<decimal>, List<decimal>) GetBondYield(decimal par, decimal price, decimal payment, decimal paymentPeriods, PaymentFrequency paymentFrequency)
         {
             // Two assumptions
             // 1. The interest is compounded continously
@@ -115,11 +115,17 @@ namespace FinancialRiskEngine.Engine.Calculators
             decimal tolerance = 0.00001m;
             decimal slideValue = 1.0m;
 
+            // To display the info, we store the iterations
+            List<decimal> assumptions1 = new List<decimal>();
+            List<decimal> assumptions2 = new List<decimal>();
 
             bool fixedInterval = false;
             // Ensure the real return is between assumption 1 and assumption2
             while ((currentIteration < maxIterations))
             {
+                assumptions1.Add(assumption1);
+                assumptions2.Add(assumption2);
+
                 var price1 = GetPrice(payment, paymentPeriods, par, assumption1, paymentFrequency);
                 var price2 = GetPrice(payment, paymentPeriods, par, assumption2, paymentFrequency);
 
@@ -157,26 +163,29 @@ namespace FinancialRiskEngine.Engine.Calculators
             {
                 if(Math.Abs(assumption2 - assumption1) <= tolerance)
                 {
-                    return (assumption1 + assumption2) / 2;
+                    return ((assumption1 + assumption2) / 2, assumptions1, assumptions2);
                 }
+
+
+                assumptions1.Add(assumption1);
+                assumptions2.Add(assumption2);
 
                 var midPoint = (assumption1 + assumption2) / 2;
                 var estimatedPrice = GetPrice(payment, paymentPeriods, par, midPoint, paymentFrequency);
 
-                if (estimatedPrice < price)
+                if (estimatedPrice > price)
                 {
                     // Increase assumption 1
                     assumption1 = midPoint;
-                    currentIteration++;
                     continue;
                 }
 
-                if (estimatedPrice > price)
+                if (estimatedPrice < price)
                 {
                     assumption2 = midPoint;
-                    currentIteration++;
                     continue;
                 }
+
             } while (currentIteration < maxIterations);
 
             throw new Exception("Unable to converge value");
