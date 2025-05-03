@@ -1,4 +1,5 @@
 ﻿@page "/interest-rates/interest-calculator"
+@using FinancialRiskEngine.Client.Components.CalculationInfo
 @using FinancialRiskEngine.Engine.Classes.Financial
 
 
@@ -51,6 +52,63 @@
                         Please enter valid parameters to calculate the future value.
                     </MudText>
                 }
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <p>Example (not really the actual code or formulas)</p>
+                <CalculationInfo>
+                    <CalculationInfoCode>
+                        <div>
+                            <pre>
+                                <code class="language-csharp">
+                                public class Solution {
+                                    public IList&lt;string&gt; SummaryRanges(int[] nums) {
+                                        var output = new List&lt;string&gt;();
+                                        if (nums.Length == 0)
+                                        {
+                                            return output.ToArray();
+                                        }
+                                        int? firstNumber = null;
+                                        for (int i = 0; i &lt; nums.Length; i++)
+                                        {
+                                            if (firstNumber == null)
+                                            {
+                                                firstNumber = nums[i];
+                                            }
+
+                                            // Check if next number is one more and is not last number
+                                            if (!(i == (nums.Length - 1)) &amp;&amp; nums[i + 1] - 1 == nums[i])
+                                            {
+                                                continue;
+                                            }
+
+                                            if (firstNumber == nums[i])
+                                            {
+                                                output.Add(nums[i].ToString());
+                                            }
+                                            else
+                                            {
+                                                output.Add(firstNumber.ToString() + "->" + nums[i].ToString());
+                                            }
+                                            firstNumber = null;
+                                        }
+                                        return output.ToArray();
+                                    }
+                                }
+                                </code>
+                            </pre>
+                        </div>
+                    </CalculationInfoCode>
+                    <CalculationInfoFormulas>
+                        <p>
+                            \[
+                            \sigma_t^2 = \omega + \alpha_1 \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2
+                            \]
+                        </p>
+                    </CalculationInfoFormulas>
+                </CalculationInfo>
             </MudCardContent>
         </MudCard>
     </MudStack>

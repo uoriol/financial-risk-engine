@@ -6,7 +6,7 @@
 
 <div style="margin: 3em">
     <MudGrid>
-        <MainCard ColorCode="#2196f3" Title="Interest Rates" OnButtonClicked="NavigateToInterestRatesPage" Loading="@_loadingTemplates" />
+        <MainCard ImageLink="/img/fed.jpeg" Title="Interest Rates" OnButtonClicked="NavigateToInterestRatesPage" Loading="@_loadingTemplates" />
         <MainCard ColorCode="#2196f3" Title="Return simulator" Loading="@_loadingTemplates" />
         <MainCard Title="Risk/Return Analysis" Loading="@_loadingTemplates" />
         <MainCard ColorCode="#e69670" Title="Configurations" Loading="@_loadingTemplates" />
@@ -15,7 +15,6 @@
 </div>
 
 @code {
-    public Class1 class1 { get; set; } = new Class1();
     private bool _loadingTemplates = true;
     protected override async Task OnInitializedAsync()
     {

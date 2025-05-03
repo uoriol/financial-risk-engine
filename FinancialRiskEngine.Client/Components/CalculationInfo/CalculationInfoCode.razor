@@ -1,0 +1,23 @@
+﻿@inject IJSRuntime JSRuntime
+
+<MudTabPanel Text="Code">
+    @ChildContent
+</MudTabPanel>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // Call javascript function to decorate formulas
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            
+        }
+        await JSRuntime.InvokeVoidAsync("Prism.highlightAll");
+    }
+}
