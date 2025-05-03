@@ -1,0 +1,33 @@
+﻿@page "/simulators"
+@inject NavigationManager _navigation
+
+<div style="margin: 3em">
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="4" lg="4">
+            <MudCard>
+                <MudCardHeader>
+                    <CardHeaderContent>
+                        <MudText Typo="Typo.h6">Price Returns Simulators</MudText>
+                    </CardHeaderContent>
+                    <CardHeaderActions>
+                        <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
+                    </CardHeaderActions>
+                </MudCardHeader>
+                <MudCardContent>
+                    <MudText>A basic example of different ways to simulate prices.</MudText>
+                </MudCardContent>
+                <MudCardActions>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="float: right" OnClick="@DisplayPriceReturnsSimulatorComponent">Go</MudButton>
+                </MudCardActions>
+            </MudCard>
+        </MudItem>
+    </MudGrid>
+</div>
+
+@code {
+    private void DisplayPriceReturnsSimulatorComponent()
+    {
+        _navigation.NavigateTo("/simulators/price-returns-simulator");
+    }
+
+}

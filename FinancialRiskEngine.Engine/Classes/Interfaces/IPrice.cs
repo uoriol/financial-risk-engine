@@ -10,6 +10,6 @@ namespace FinancialRiskEngine.Engine.Classes.Interfaces
     {
         public DateTime Date { get; set; }
         public double Open { get; set; }
-        public double Return { get; set; }
+        public double Close { get; set; }
     }
 }

@@ -59,10 +59,17 @@
             <MudCardContent>
                 <p>Example (not really the actual code or formulas)</p>
                 <CalculationInfo>
+                    <CalculationInfoFormulas>
+                        <p>
+                            \[
+                            \sigma_t^2 = \omega + \alpha_1 \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2
+                            \]
+                        </p>
+                    </CalculationInfoFormulas>
                     <CalculationInfoCode>
                         <div>
                             <pre>
-                                <code class="language-csharp">
+                            <code class="language-csharp">
                                 public class Solution {
                                     public IList&lt;string&gt; SummaryRanges(int[] nums) {
                                         var output = new List&lt;string&gt;();
@@ -101,13 +108,6 @@
                             </pre>
                         </div>
                     </CalculationInfoCode>
-                    <CalculationInfoFormulas>
-                        <p>
-                            \[
-                            \sigma_t^2 = \omega + \alpha_1 \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2
-                            \]
-                        </p>
-                    </CalculationInfoFormulas>
                 </CalculationInfo>
             </MudCardContent>
         </MudCard>

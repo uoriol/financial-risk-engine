@@ -1,0 +1,112 @@
+﻿@page "/simulators/price-returns-simulator"
+@using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Components.Tables
+@using FinancialRiskEngine.Engine.Simulators
+@using FinancialRiskEngine.Engine.Classes.Financial
+
+<div style="max-width: 50vw; margin-left: 3em; margin-top: 4em">
+    <MudStack Spacing="4">
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <MudGrid>
+                    @*                     <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_par" Label="Par Value" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_marketPrice" Label="Market Price" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudTextField @bind-Value="_payment" Label="Payment Value" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudSelect T="PaymentFrequency" Label="Payment Frequency" @bind-Value="_paymentFrequency" Style="margin-bottom: 1em">
+                            @foreach (var freq in Enum.GetValues<PaymentFrequency>())
+                            {
+                                <MudSelectItem Value="freq">@freq</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" sm="10">
+                        <MudTextField @bind-Value="_paymentPeriods" Label="Payment Periods" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+                    </MudItem> *@
+                    <MudItem xs="12" sm="2">
+                        @* <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@SimulateReturns">Simulate Returns</MudButton> *@
+                        <MudButton Disabled="@_loading" OnClick="SimulateReturns" Variant="Variant.Filled" Color="Color.Primary">
+                            @if (_loading)
+                            {
+                                <MudProgressCircular Class="ms-n1" Size="Size.Small" Indeterminate="true" />
+                                <MudText Class="ms-2">Processing</MudText>
+                            }
+                            else
+                            {
+                                <MudText>Simulate Returns</MudText>
+                            }
+                        </MudButton>
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+        </MudCard>
+        <MudCard>
+            @if (_loading)
+            {
+                <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+            } else
+            {
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                    <MudTabPanel Text="Table">
+                        <ReturnsTable Prices="@SimulatedPrices" Loading="@_loading" />
+                    </MudTabPanel>
+                    <MudTabPanel Text="Distribution Histogram">
+                        <ReturnsDistributionHistogram />
+                    </MudTabPanel>
+                    <MudTabPanel Text="Line Chart">
+                        <ReturnsDistributionHistogram />
+                    </MudTabPanel>
+                </MudTabs>
+            }
+        </MudCard>
+    </MudStack>
+</div>
+
+
+@code {
+    private List<Price> SimulatedPrices = new List<Price>();
+
+    private double _open = 100;
+    private double _mean = 0.001;
+    private double _std = 0.008;
+    private int _nSimulatedDays = 1000;
+    private int _nRuns = 1;
+
+    private bool _loading = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SimulateReturns();
+    }
+
+
+    private async Task SimulateReturns()
+    {
+        Thread.Sleep(50); // Simulate a delay for loading state
+        _loading = true;
+        StateHasChanged(); // Trigger spinner or loading state
+
+        SimulatedPrices = await Task.Run(() =>
+            PriceSimulator.GetSimulatedPricesNormalDistributionAsync(_nSimulatedDays, _mean, _std, _open)
+        );
+
+        _loading = false;
+        StateHasChanged(); // Trigger final render
+    }
+
+    private async Task SimulateReturns2()
+    {
+        _loading = true;
+        StateHasChanged();
+        SimulatedPrices = await PriceSimulator.GetSimulatedPricesNormalDistributionAsync(_nSimulatedDays, _mean, _std, _open);
+        _loading = false;
+        StateHasChanged();
+
+    }
+}

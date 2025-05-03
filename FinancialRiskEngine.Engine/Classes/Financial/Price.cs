@@ -7,17 +7,17 @@ namespace FinancialRiskEngine.Engine.Classes.Financial
     {
         public DateTime Date { get; set; }
         public double Open { get; set; }
-        public double Return { get; set; }
+        public double Return => (Open == 0) ? 0 : (Close - Open) / Open;
 
-        public double Close => Open + Open * Return;
+        public double Close { get; set; }
         public VolatilityScenario VolatilityScenario { get; set; } = VolatilityScenario.NORMAL;
 
         public Price() { }
-        public Price(DateTime date, double open, double returnValue, VolatilityScenario volatilityScenario = VolatilityScenario.NORMAL)
+        public Price(DateTime date, double open, double close, VolatilityScenario volatilityScenario = VolatilityScenario.NORMAL)
         {
             Date = date;
             Open = open;
-            Return = returnValue;
+            Close = close;
             VolatilityScenario = volatilityScenario;
         }
     }

@@ -7,7 +7,7 @@
 <div style="margin: 3em">
     <MudGrid>
         <MainCard ImageLink="/img/fed.jpeg" Title="Interest Rates" OnButtonClicked="NavigateToInterestRatesPage" Loading="@_loadingTemplates" />
-        <MainCard ColorCode="#2196f3" Title="Return simulator" Loading="@_loadingTemplates" />
+        <MainCard ImageLink="/img/simulation.jpg" Title="Return simulator" Loading="@_loadingTemplates" OnButtonClicked="NavigateToSimulationsPage" />
         <MainCard Title="Risk/Return Analysis" Loading="@_loadingTemplates" />
         <MainCard ColorCode="#e69670" Title="Configurations" Loading="@_loadingTemplates" />
         <MainCard ImageLink="/img/documents.jpeg" Title="Resources" Description="To find articles and other documents." OnButtonClicked="NavigateToResourcesPage" Loading="@_loadingTemplates" />
@@ -32,5 +32,10 @@
     private async Task NavigateToInterestRatesPage()
     {
         _navigation.NavigateTo("interest-rates");
+    }
+
+    private async Task NavigateToSimulationsPage()
+    {
+        _navigation.NavigateTo("simulators");
     }
 }
