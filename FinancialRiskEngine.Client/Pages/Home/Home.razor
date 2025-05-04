@@ -6,9 +6,10 @@
 
 <div style="margin: 3em">
     <MudGrid>
-        <MainCard ImageLink="/img/fed.jpeg" Title="Interest Rates" OnButtonClicked="NavigateToInterestRatesPage" Loading="@_loadingTemplates" />
-        <MainCard ImageLink="/img/simulation.jpg" Title="Return simulator" Loading="@_loadingTemplates" OnButtonClicked="NavigateToSimulationsPage" />
+        <MainCard ImageLink="/img/fed.jpeg" Title="Interest Rates" OnButtonClicked="NavigateToInterestRatesPage" Loading="@_loadingTemplates" Description="Exercises to explain the characteristics of interest rates" />
+        <MainCard ImageLink="/img/simulation.jpg" Title="Return simulator" Loading="@_loadingTemplates" OnButtonClicked="NavigateToSimulationsPage" Description="Simulations for returns and other financial applications" />
         <MainCard Title="Risk/Return Analysis" Loading="@_loadingTemplates" />
+        <MainCard ImageLink="/img/stockmarket.png" Title="Risk Analysis" Loading="@_loadingTemplates" OnButtonClicked="NavigateToRiskAnalysisPage" />
         <MainCard ColorCode="#e69670" Title="Configurations" Loading="@_loadingTemplates" />
         <MainCard ImageLink="/img/documents.jpeg" Title="Resources" Description="To find articles and other documents." OnButtonClicked="NavigateToResourcesPage" Loading="@_loadingTemplates" />
     </MudGrid>
@@ -37,5 +38,10 @@
     private async Task NavigateToSimulationsPage()
     {
         _navigation.NavigateTo("simulators");
+    }
+
+    private async Task NavigateToRiskAnalysisPage()
+    {
+        _navigation.NavigateTo("risk-analysis");
     }
 }

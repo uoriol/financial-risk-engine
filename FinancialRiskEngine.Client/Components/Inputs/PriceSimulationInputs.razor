@@ -1,0 +1,54 @@
+﻿@using FinancialRiskEngine.Client.Components.Display
+
+<MudCard Elevation="3">
+    <CardTitle Title="Inputs" />
+    <MudCardContent>
+        <MudGrid>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_open" Min="0.0001" Label="Starting Price" Variant="Variant.Outlined" Step=".4" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_nSimulatedDays" Min="1" Max="100000" Label="Simulated Days" Variant="Variant.Outlined" Step="100" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudTextField @bind-Value="_mean" Label="Mean Daily Return (%)" Variant="Variant.Outlined" Style="margin-bottom: 1em" />
+            </MudItem>
+            <MudItem xs="12" sm="6">
+                <MudNumericField @bind-Value="_std" Min="0.0000" Label="Dailiy Volatility" Variant="Variant.Outlined" Step=".4" />
+            </MudItem>
+            <MudItem xs="10" sm="10">
+            </MudItem>
+            <MudItem xs="2" sm="2">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@UpdateParameters">Simulate Returns</MudButton>
+            </MudItem>
+        </MudGrid>
+    </MudCardContent>
+</MudCard>
+
+@code {
+    [Parameter]
+    public double _open{ get; set; } = 100;
+
+    [Parameter]
+    public double _mean{ get; set; } = 0.001;
+
+    [Parameter]
+    public double _std{ get; set; } = 0.008;
+
+    [Parameter]
+    public int _nSimulatedDays{ get; set; } = 1000;
+
+    [Parameter]
+    public int _nRuns{ get; set; } = 1;
+
+    [Parameter]
+    public string ButtonText { get; set; } = "Simulate Returns";
+
+    [Parameter]
+    public EventCallback OnParametersChanged { get; set; }
+
+    private async Task UpdateParameters()
+    {
+        await OnParametersChanged.InvokeAsync();
+    }
+}
