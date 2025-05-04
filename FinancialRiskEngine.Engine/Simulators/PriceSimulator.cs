@@ -1,7 +1,9 @@
 ﻿using FinancialRiskEngine.Engine.Classes.Financial;
 using MathNet.Numerics.Distributions;
+using MathNet.Numerics.Providers.LinearAlgebra;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -17,8 +19,37 @@ namespace FinancialRiskEngine.Engine.Simulators
 
         // We can additionally consider implementing a random walk simulation, or other models
 
+        public static async Task<List<Price>> GetSimulatedPricesNormalDistributionOptimizedAsync(int n = 1000, double mean = 0.001, double std = 0.008, double open = 100)
+        {
+            Stopwatch sw = new Stopwatch();
+            sw.Start();
+            // Fill array with n samples in one call
+            double[] returns = new double[n];
+            Normal normal = new Normal(mean, std);
+            normal.Samples(returns);
+
+            var prices = new List<Price>{
+                new Price(DateTime.Now, open, Math.Max(open + (open * returns[0]), 0))
+            };
+
+            for (int i = 1; i < n; i++)
+            {
+                prices.Add(new Price()
+                {
+                    Date = GetNextTradingDay(prices[i - 1].Date),
+                    Open = prices[i - 1].Close,
+                    Close = prices[i - 1].Close + (prices[i - 1].Close * returns[i])
+                });
+            }
+            sw.Stop();
+            Console.WriteLine($"Elapsed milliseconds (optimized): {sw.ElapsedMilliseconds}");
+            return prices;
+        }
+
         public static async Task<List<Price>> GetSimulatedPricesNormalDistributionAsync(int n = 1000, double mean = 0.001, double std = 0.008, double open = 100)
         {
+            Stopwatch stopwatch = new Stopwatch();
+            stopwatch.Start();
             bool hasReachedZero = false;
             var prices = new List<Price>{
                 new Price(DateTime.Now, open, Math.Max(open + (open * GetRandomNormalValue()), 0))
@@ -32,6 +63,8 @@ namespace FinancialRiskEngine.Engine.Simulators
                     Close = prices[i - 1].Close + (prices[i - 1].Close * GetRandomNormalValue(mean, std))
                 });
             }
+            stopwatch.Stop();
+            Console.WriteLine($"Elapsed milliseconds: {stopwatch.ElapsedMilliseconds}");
             return prices;
         }
 

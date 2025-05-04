@@ -1,5 +1,9 @@
 ﻿@using FinancialRiskEngine.Engine.Classes.Financial
-<h3>ReturnsLineChart</h3>
+@inject IJSRuntime _jsInterop
+
+<div class="col-12">
+    <svg id="returns-plot"></svg>
+</div>
 
 @code {
     [Parameter]
@@ -8,5 +12,13 @@
     protected override async Task OnInitializedAsync()
     {
         // We will handle charts with javascript libraries as mudblazor is very limited
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await _jsInterop.InvokeVoidAsync("CreatePricesChart", Prices, "#returns-plot");
+        }
     }
 }

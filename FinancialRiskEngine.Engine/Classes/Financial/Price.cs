@@ -1,15 +1,23 @@
 ﻿using FinancialRiskEngine.Engine.Classes.Interfaces;
+using System.Text.Json.Serialization;
 using static FinancialRiskEngine.Engine.Enums.Enums;
 
 namespace FinancialRiskEngine.Engine.Classes.Financial
 {
     public class Price : IPrice
     {
+        [JsonPropertyName("date")]
         public DateTime Date { get; set; }
+
+        [JsonPropertyName("open")]
         public double Open { get; set; }
+
+        [JsonPropertyName("close")]
+        public double Close { get; set; }
+
+        [JsonPropertyName("return")]
         public double Return => (Open == 0) ? 0 : (Close - Open) / Open;
 
-        public double Close { get; set; }
         public VolatilityScenario VolatilityScenario { get; set; } = VolatilityScenario.NORMAL;
 
         public Price() { }
