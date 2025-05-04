@@ -1,5 +1,6 @@
 ﻿@page "/interest-rates/interest-calculator"
 @using FinancialRiskEngine.Client.Components.CalculationInfo
+@using FinancialRiskEngine.Client.Components.Display
 @using FinancialRiskEngine.Engine.Classes.Financial
 
 
@@ -9,7 +10,8 @@
     <MudStack Spacing="4">
         <MudCard Elevation="3">
             <MudCardHeader>
-                <MudText Typo="Typo.h6">Interest Rate Parameters</MudText>
+                <CardTitle Title="Inputs" />
+                @* <MudText Typo="Typo.h6">Interest Rate Parameters</MudText> *@
                 <MudSpacer />
                 <MudButton Variant="Variant.Filled"
                             StartIcon="@Icons.Material.Filled.Edit"

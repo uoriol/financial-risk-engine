@@ -1,5 +1,6 @@
 ﻿@page "/simulators/price-returns-simulator"
 @using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Components.Display
 @using FinancialRiskEngine.Client.Components.Tables
 @using FinancialRiskEngine.Engine.Simulators
 @using FinancialRiskEngine.Engine.Classes.Financial
@@ -8,6 +9,7 @@
     <div style="max-width: 50vw; margin-left: 1.5em; margin-top: 1.5em">
         <MudStack Spacing="4">
             <MudCard Elevation="3">
+                <CardTitle Title="Inputs" />
                 <MudCardContent>
                     <MudGrid>
                         <MudItem xs="12" sm="6">

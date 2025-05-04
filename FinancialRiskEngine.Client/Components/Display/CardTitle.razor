@@ -1,0 +1,24 @@
+﻿<style>
+    .card-title-app {
+        padding: 1em;
+        color: white;
+        border-radius: 10px 10px 0px 0px;
+        background: var(--mud-palette-primary);
+        padding-top: 0.5em;
+        padding-bottom: 0.5em;
+        text-align: center;
+        background: white;
+        color: var(--mud-palette-primary);
+        border-bottom: 1px solid var(--mud-palette-primary);
+        background: #fdfcff;
+    }
+</style>
+
+<div class="card-title-app">
+    <MudText>@Title</MudText>
+</div>
+
+@code {
+    [Parameter]
+    public string Title { get; set; } = string.Empty;
+}
