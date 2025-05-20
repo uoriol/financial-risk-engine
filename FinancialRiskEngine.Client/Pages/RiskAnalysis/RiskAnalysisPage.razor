@@ -1,26 +1,12 @@
 ﻿@page "/risk-analysis"
+@using FinancialRiskEngine.Client.Components.Display
 @inject NavigationManager _navigation
 
 <div style="margin: 3em">
     <MudGrid>
-        <MudItem xs="12" sm="6" md="4" lg="4">
-            <MudCard>
-                <MudCardHeader>
-                    <CardHeaderContent>
-                        <MudText Typo="Typo.h6">VaR Calculator</MudText>
-                    </CardHeaderContent>
-                    <CardHeaderActions>
-                        <MudIconButton Icon="@Icons.Material.Filled.Info" Color="Color.Info" />
-                    </CardHeaderActions>
-                </MudCardHeader>
-                <MudCardContent>
-                    <MudText>A basic calculator that returns the VaR using different methods and time horizons.</MudText>
-                </MudCardContent>
-                <MudCardActions>
-                    <MudButton Variant="Variant.Filled" Color="Color.Primary" Style="float: right" OnClick="@DisplayVaRCalculatorComponent">Go</MudButton>
-                </MudCardActions>
-            </MudCard>
-        </MudItem>
+        <SecondaryCard Title="VaR Calculator"
+                       Description="A basic calculator that returns the VaR using different methods and time horizons."
+                       OnClick="@DisplayVaRCalculatorComponent" />
     </MudGrid>
 </div>
 
