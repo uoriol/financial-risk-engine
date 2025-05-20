@@ -2,7 +2,6 @@
 @inject IJSRuntime _jsInterop
 
 <div class="col-12">
-    @* <svg id="varreturnsplot"></svg> *@
     <svg id="returnshistorgram"></svg>
 </div>
 
@@ -10,16 +9,42 @@
     [Parameter]
     public List<Price> Prices { get; set; } = new List<Price>();
 
-    protected override async Task OnInitializedAsync()
-    {
-        // We will handle charts with javascript libraries as mudblazor is very limited
-    }
+    [Parameter]
+    public double? VaR { get; set; } = null;
+
+    private List<double> _lastReturns = new();
+    private double? _lastVaR = null;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            await _jsInterop.InvokeVoidAsync("CreateHistogram", Prices.Select(x => x.Return).ToList(), "#returnshistorgram");
+            await UpdateHistogram();
+            _lastReturns = Prices.Select(x => x.Return).ToList();
+            _lastVaR = VaR;
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        var currentReturns = Prices.Select(x => x.Return).ToList();
+        bool returnsChanged = !_lastReturns.SequenceEqual(currentReturns);
+        bool varChanged = _lastVaR != VaR;
+
+        if (returnsChanged || varChanged)
+        {
+            await UpdateHistogram();
+            _lastReturns = currentReturns;
+            _lastVaR = VaR;
+        }
+    }
+
+    public async Task UpdateHistogram()
+    {
+        await _jsInterop.InvokeVoidAsync("CreateHistogram", Prices.Select(x => x.Return).ToList(), "#returnshistorgram");
+        if (VaR != null)
+        {
+            await _jsInterop.InvokeVoidAsync("AddVaRLine", "#returnshistorgram", VaR);
         }
     }
 }

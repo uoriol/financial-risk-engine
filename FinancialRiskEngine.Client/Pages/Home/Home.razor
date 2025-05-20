@@ -10,8 +10,9 @@
         <MainCard ImageLink="/img/simulation.jpg" Title="Return simulator" Loading="@_loadingTemplates" OnButtonClicked="NavigateToSimulationsPage" Description="Simulations for returns and other financial applications" />
         <MainCard Title="Risk/Return Analysis" Loading="@_loadingTemplates" />
         <MainCard ImageLink="/img/stockmarket.png" Title="Risk Analysis" Loading="@_loadingTemplates" OnButtonClicked="NavigateToRiskAnalysisPage" />
-        <MainCard ColorCode="#e69670" Title="Configurations" Loading="@_loadingTemplates" />
+        <MainCard ImageLink="/img/options.jpg" Title="Options" OnButtonClicked="NavigateToOptionsPage" Loading="@_loadingTemplates" />
         <MainCard ImageLink="/img/documents.jpeg" Title="Resources" Description="To find articles and other documents." OnButtonClicked="NavigateToResourcesPage" Loading="@_loadingTemplates" />
+        <MainCard ColorCode="#e69670" Title="Configurations" Loading="@_loadingTemplates" />
     </MudGrid>
 </div>
 
@@ -43,5 +44,10 @@
     private async Task NavigateToRiskAnalysisPage()
     {
         _navigation.NavigateTo("risk-analysis");
+    }
+
+    private async Task NavigateToOptionsPage()
+    {
+        _navigation.NavigateTo("options");
     }
 }

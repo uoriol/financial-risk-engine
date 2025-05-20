@@ -1,4 +1,5 @@
 ﻿@using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Components.Display
 @using FinancialRiskEngine.Client.Components.Inputs
 @using FinancialRiskEngine.Client.Components.Tables
 @using FinancialRiskEngine.Engine.Calculators
@@ -6,44 +7,133 @@
 @using FinancialRiskEngine.Engine.Simulators
 @page "/risk-analysis/var-calculator"
 
-<PriceSimulationInputs @ref="@priceSimulationInputs" OnParametersChanged="@SimulateReturns" />
-@if(Prices.Count() > 0)
-{
-    <ReturnsTable Prices="@Prices" />
-    @* <ReturnsLineChart Prices="@Prices" /> *@
-}
-
-
-<MudCard>
-    <MudButton Color="Color.Primary" Variant="Variant.Filled" OnClick="@CalculateVaR">Calculate VaR</MudButton>
-    @if (VaR != null)
-    {
-        <MudText Typo="Typo.h5" Color="Color.Primary">
-            VaR: @VaR
-        </MudText>
+<style>
+    .var-text {
+        font-weight: 500;
+        color: #bf0d0d;
     }
-    else
-    {
-        <MudText Typo="Typo.subtitle1" Color="Color.Warning">
-            Please enter valid parameters to calculate the VaR.
-        </MudText>
-    }
-</MudCard>
+</style>
+
+<div style="display: inline-flex">
+    <div style="max-width: 50vw; margin-left: 1.5em; margin-top: 1.5em">
+        <MudStack Spacing="4">
+            <MudCard Elevation="3">
+                <PriceSimulationInputs @ref="@priceSimulationInputs" OnParametersChanged="@SimulateReturns" />
+            </MudCard>
+            <MudCard>
+                @if (_loading)
+                {
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+                }
+                else
+                {
+                    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                        <MudTabPanel Text="Distribution Histogram">
+                            <ReturnsDistributionHistogram Prices="@Prices" VaR="@_percentageVaR" />
+                        </MudTabPanel>
+                        <MudTabPanel Text="Table">
+                            <ReturnsTable Prices="@Prices" Loading="@_loading" />
+                        </MudTabPanel>
+                    </MudTabs>
+                }
+            </MudCard>
+        </MudStack>
+    </div>
+    <div style="margin-left: 1em; margin-top: 1.5em">
+        <MudStack Spacing="4">
+            @if (!_loading)
+            {
+                <MudAlert Severity="Severity.Normal" Variant="Variant.Outlined" Dense="true" Class="my-2">
+                    Portfolio last price: @Prices.Last().Close.ToString("F2")
+                </MudAlert>
+            }
+            <MudCard>
+                @if (_loading)
+                {
+                    <MudText Color="Color.Primary">Running simulations...</MudText>
+                }
+                else
+                {
+                    <CardTitle Title="VaR 1-day" />
+                    <div style="text-align: center; margin: 1em">
+                        <MudNumericField @bind-Value="_confidenceLevel1Day" Min="0.9000" Max="0.9999" Label="Confidence Level" Variant="Variant.Outlined" Step=".005" />
+                        <MudButton Style="margin: 1em" Size="Size.Medium" Color="Color.Primary" Variant="Variant.Filled" OnClick="@CalculateVaR">Calculate VaR</MudButton>
+                        @if (VaR != null)
+                        {
+                            <MudChip T="string" Variant="Variant.Outlined" Color="Color.Dark">
+                                VaR (1 day, @_confidenceLevel1Day CL): <span class="var-text">&nbsp;&nbsp;@VaR?.ToString("F2")</span>
+                            </MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Disabled="true" Variant="Variant.Outlined">
+                                Not computed
+                            </MudChip>
+                        }
+                    </div>
+                }
+            </MudCard>
+            <MudCard>
+                @if (_loading)
+                {
+                    <MudText Color="Color.Primary">Running simulations...</MudText>
+                }
+                else
+                {
+                    <CardTitle Title="Extendend Time Horizon" />
+                    <div style="text-align: center; margin: 1em">
+                        <VaRInputs @ref="_varInputs" OnParametersChanged="CalculateIncreasedTimeHorizonVaR" />
+                        @if (VaRnDays != null)
+                        {
+                            <MudChip T="string" Variant="Variant.Outlined" Color="Color.Dark">
+                                VaR (@_varInputs._daysTimeHorizon days, @_varInputs._confidenceLevel.ToString("P2") CL): <span class="var-text">&nbsp;&nbsp;@VaRnDays?.ToString("F2")</span>
+                            </MudChip>
+                        }
+                        else
+                        {
+                            <MudChip T="string" Disabled="true" Variant="Variant.Outlined">
+                                Not computed
+                            </MudChip>
+                        }
+                    </div>
+                }
+            </MudCard>
+            <MudCard>
+                @if (_loading)
+                {
+                    <MudText Color="Color.Primary">Running simulations...</MudText>
+                }
+                else
+                {
+                    <ReturnsTable Prices="@Prices" Loading="@_loading" />
+                }
+            </MudCard>
+        </MudStack>
+
+    </div>
+</div>
+
 
 @code {
     public List<Price> Prices { get; set; } = new List<Price>();
     private PriceSimulationInputs priceSimulationInputs;
+    private VaRInputs _varInputs;
     private double? VaR { get; set; } = null;
-
+    private double? VaRnDays { get; set; } = null;
+    private double? _percentageVaR = null;
+    private bool _loading = true;
+    private double _confidenceLevel1Day = 0.99;
     protected override async Task OnInitializedAsync()
     {
         // Generate random prices
-        Prices = await PriceSimulator.GetSimulatedPricesNormalDistributionOptimizedAsync(1000, 0.001, 0.008, 100);
+        Prices = await PriceSimulator.GetSimulatedPricesNormalDistributionOptimizedAsync(1000, 0.000, 0.008, 100);
+        _loading = false;
     }
 
     private async Task SimulateReturns()
     {
-        Prices = new List<Price>();
+        Thread.Sleep(50); // Simulate a delay for loading state
+        ResetValues();
         StateHasChanged();
         // Simulate returns based on the inputs
         var simulatedPrices = await PriceSimulator.GetSimulatedPricesNormalDistributionOptimizedAsync(
@@ -52,11 +142,35 @@
             priceSimulationInputs._std,
             priceSimulationInputs._open);
         Prices = simulatedPrices;
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void ResetValues()
+    {
+        _loading = true;
+        Prices = new List<Price>();
+        _percentageVaR = null;
+        VaR = null;
+        VaRnDays = null;
     }
 
     private async Task CalculateVaR()
     {
         // For now at 99% confidence level and 1 day time horizon
-        VaR = VaRCalculator.ComputeValueAtRisk(Prices, 0.99, 1); 
+        VaR = VaRCalculator.ComputeValueAtRisk(Prices, _confidenceLevel1Day);
+        _percentageVaR = ComputePercentualVaR();
+        StateHasChanged();
+    }
+
+    private double? ComputePercentualVaR()
+    {
+        return (VaR * -1) / Prices.Last().Close;
+    }
+
+    private async Task CalculateIncreasedTimeHorizonVaR()
+    {
+        VaRnDays = VaRCalculator.ComputeValueAtRisk(Prices, _varInputs._confidenceLevel, _varInputs._daysTimeHorizon);
+        StateHasChanged();
     }
 }

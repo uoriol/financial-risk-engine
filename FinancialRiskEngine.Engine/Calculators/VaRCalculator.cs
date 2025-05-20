@@ -43,10 +43,13 @@ namespace FinancialRiskEngine.Engine.Calculators
             return (prices.Last().Close * returnVaR) * -1;
         }
 
-        public static double ComputeVaRNDays(double VaR, int ndays = 10)
+        private static double ComputeVaRNDays(double VaR, int ndays = 10)
         {
             // Only appropiate when assuming independent and identically distributed results
+            // Additionally no autocorrelation or volatility clustering
             return VaR * Math.Sqrt(ndays);
+
+            // TODO : Implement better methods of extending the VaR time horizon
         }
     }
 }

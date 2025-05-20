@@ -1,0 +1,31 @@
+﻿@using FinancialRiskEngine.Client.Components.Display
+
+<MudGrid>
+    <MudItem xs="12" sm="6">
+        <MudNumericField @bind-Value="_confidenceLevel" Min="0.90" Max="0.9999" Label="Confidence Level" Variant="Variant.Outlined" Step=".005" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudNumericField @bind-Value="_daysTimeHorizon" Min="2" Max="250" Label="Simulated Days" Variant="Variant.Outlined" Step="1" />
+    </MudItem>
+</MudGrid>
+
+<MudButton Style="margin: 1em" Variant="Variant.Filled" Color="Color.Primary" OnClick="@UpdateParameters">@ButtonText</MudButton>
+
+@code {
+    [Parameter]
+    public double _confidenceLevel { get; set; } = 0.99;
+
+    [Parameter]
+    public int _daysTimeHorizon { get; set; } = 2;
+
+    [Parameter]
+    public string ButtonText { get; set; } = "Calculate VaR";
+
+    [Parameter]
+    public EventCallback OnParametersChanged { get; set; }
+
+    private async Task UpdateParameters()
+    {
+        await OnParametersChanged.InvokeAsync();
+    }
+}

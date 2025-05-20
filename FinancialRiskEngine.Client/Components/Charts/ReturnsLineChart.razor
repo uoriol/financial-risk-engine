@@ -9,16 +9,26 @@
     [Parameter]
     public List<Price> Prices { get; set; } = new List<Price>();
 
-    protected override async Task OnInitializedAsync()
-    {
-        // We will handle charts with javascript libraries as mudblazor is very limited
-    }
+    private List<Price> _lastPrices = new();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
             await _jsInterop.InvokeVoidAsync("CreatePricesChart", Prices, "#returns-plot");
+            _lastPrices = Prices.ToList();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Compare prices list by reference or value
+        bool pricesChanged = !_lastPrices.SequenceEqual(Prices);
+
+        if (pricesChanged)
+        {
+            await _jsInterop.InvokeVoidAsync("CreatePricesChart", Prices, "#returns-plot");
+            _lastPrices = Prices.ToList();
         }
     }
 }
