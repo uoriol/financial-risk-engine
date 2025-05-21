@@ -34,8 +34,8 @@
                         <MudTabPanel Text="Confidence Level Chart">
                             <VaRConfidenceLevelChart Prices="@Prices" />
                         </MudTabPanel>
-                        <MudTabPanel Text="Table">
-                            <ReturnsTable Prices="@Prices" Loading="@_loading" />
+                        <MudTabPanel Text="Holding Period Chart">
+                            <VaRHoldingPeriodChart Prices="@Prices" CL="_confidenceLevel1Day" />
                         </MudTabPanel>
                     </MudTabs>
                 }
@@ -59,6 +59,11 @@
                 {
                     <CardTitle Title="VaR 1-day" />
                     <div style="text-align: center; margin: 1em">
+                        <MudSlider @bind-Value="_confidenceLevel1Day"
+                                   Min="0.900" Max="0.999" Step="0.005"
+                                   TickMarks="true"
+                                   ValueLabel="true"
+                                   ValueLabelFormat="F2"/>
                         <MudNumericField @bind-Value="_confidenceLevel1Day" Min="0.9000" Max="0.9999" Label="Confidence Level" Variant="Variant.Outlined" Step=".005" />
                         <MudButton Style="margin: 1em" Size="Size.Medium" Color="Color.Primary" Variant="Variant.Filled" OnClick="@CalculateVaR">Calculate VaR</MudButton>
                         @if (VaR != null)

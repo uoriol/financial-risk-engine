@@ -1,0 +1,84 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+@using FinancialRiskEngine.Engine.Calculators
+@inject IJSRuntime _jsInterop
+
+<div class="col-12">
+    <svg id="var-hp-plot"></svg>
+</div>
+
+@code {
+    [Parameter]
+    public List<Price> Prices { get; set; } = new List<Price>();
+
+    [Parameter]
+    public double CL { get; set; } = 0.99;
+
+    private double _lastCL = 0.99;
+    private List<Price> _lastPrices = new();
+
+    private List<int> _days = new List<int> { 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
+
+    private class VaRHoldingPeriod
+    {
+        public int HoldingPeriod { get; set; }
+        public double VaR { get; set; }
+    }
+
+    private List<VaRHoldingPeriod> _varHoldingPeriods = new List<VaRHoldingPeriod>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RenderChart();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (HaveParametersChanged())
+        {
+            await RenderChart();
+        }
+    }
+
+    private bool HaveParametersChanged()
+    {
+        bool pricesChanged = !_lastPrices.SequenceEqual(Prices);
+        bool CLChanged = _lastCL != CL;
+
+        return (pricesChanged || CLChanged);
+    }
+
+    private async Task RenderChart()
+    {
+        if (_jsInterop is IJSInProcessRuntime)
+        {
+            await UpdateVaRConfidenceLevelObject();
+            await _jsInterop.InvokeVoidAsync("CreateVaRHoldingPeriodChart", _varHoldingPeriods, "#var-hp-plot");
+            _lastPrices = Prices.ToList();
+            _lastCL = CL;
+        }
+    }
+
+    private async Task UpdateVaRConfidenceLevelObject()
+    {
+        _varHoldingPeriods = new List<VaRHoldingPeriod>();
+        var tasks = new List<Task>();
+        foreach (var days in _days)
+        {
+            tasks.Add(Task.Run(() =>
+            {
+                var varHoldingPeriod = new VaRHoldingPeriod
+                {
+                    HoldingPeriod = days,
+                    VaR = VaRCalculator.ComputeValueAtRisk(Prices, CL, days) // Of course, we need to improve this calculation
+                };
+                _varHoldingPeriods.Add(varHoldingPeriod);
+            }));
+        }
+        ;
+        await Task.WhenAll(tasks);
+        _varHoldingPeriods = _varHoldingPeriods.OrderBy(x => x.HoldingPeriod).ToList();
+    }
+}

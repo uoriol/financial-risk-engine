@@ -129,3 +129,72 @@ function CreateVaRConfidenceLevelChart(data, selector) {
         .style("font-size", "12px")
         .text("VaR");
 }
+
+
+function CreateVaRHoldingPeriodChart(data, selector) {
+
+    console.log("Creating VaR Holding Period Chart", data);
+
+    // Already camelCase, so no need to reformat
+    data.forEach(d => {
+        d.holdingPeriod = +d.holdingPeriod;
+        d.vaR = +d.vaR;
+    });
+
+    d3.select(selector).selectAll("*").remove();
+
+    const margin = { top: 20, right: 30, bottom: 50, left: 50 };
+    const width = 500 - margin.left - margin.right;
+    const height = 400 - margin.top - margin.bottom;
+
+    const svg = d3.select(selector)
+        .attr("width", width + margin.left + margin.right)
+        .attr("height", height + margin.top + margin.bottom)
+        .append("g")
+        .attr("transform", `translate(${margin.left},${margin.top})`);
+
+    const x = d3.scaleLinear()
+        .domain(d3.extent(data, d => d.holdingPeriod))
+        .range([0, width]);
+
+    const y = d3.scaleLinear()
+        .domain([
+            d3.min(data, d => d.vaR) * 0.95,
+            d3.max(data, d => d.vaR) * 1.05
+        ])
+        .range([height, 0]);
+
+    svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x).tickFormat(d3.format(".2f")));
+
+    svg.append("g")
+        .call(d3.axisLeft(y));
+
+    const line = d3.line()
+        .x(d => x(d.holdingPeriod))
+        .y(d => y(d.vaR))
+        .curve(d3.curveMonotoneX);
+
+    svg.append("path")
+        .datum(data.sort((a, b) => a.holdingPeriod - b.holdingPeriod))
+        .attr("fill", "none")
+        .attr("stroke", "black")
+        .attr("stroke-width", 1.5)
+        .attr("d", line);
+
+    svg.append("text")
+        .attr("x", width / 2)
+        .attr("y", height + margin.bottom - 10)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("Holding Period");
+
+    svg.append("text")
+        .attr("transform", "rotate(-90)")
+        .attr("y", -margin.left + 15)
+        .attr("x", -height / 2)
+        .attr("text-anchor", "middle")
+        .style("font-size", "12px")
+        .text("VaR");
+}
