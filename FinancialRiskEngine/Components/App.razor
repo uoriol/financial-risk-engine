@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
     <link href=@Assets["_content/MudBlazor/MudBlazor.min.css"] rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+    <link href="/scripts/plotlibraries/billboard.min.css" rel="stylesheet" />
     <ImportMap />
     <link rel="icon" type="image/ico" href="favicon.ico" />
     <HeadOutlet @rendermode="InteractiveWebAssembly" />
@@ -36,11 +37,13 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-csharp.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+    <script src="/scripts/plotlibraries/billboard.min.js"></script>
     <script src="@cdnObservableLink"></script>
     <script src="/scripts/savefile.js"></script>
     <script src="/scripts/charts/histogram_logic.js"></script>
     <script src="/scripts/charts/candlestick_chart_logic.js"></script>
     <script src="/scripts/charts/line_chart_logic.js"></script>
+    <script src="/scripts/charts/billboard_logic.js"></script>
     @code {
         private string cdnObservableLink = "https://cdn.jsdelivr.net/npm/@observablehq/plot@0.6";
     }
