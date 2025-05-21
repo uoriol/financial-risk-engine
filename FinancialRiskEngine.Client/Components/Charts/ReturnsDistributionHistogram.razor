@@ -41,10 +41,14 @@
 
     public async Task UpdateHistogram()
     {
-        await _jsInterop.InvokeVoidAsync("CreateHistogram", Prices.Select(x => x.Return).ToList(), "#returnshistorgram");
-        if (VaR != null)
+        if (_jsInterop is IJSInProcessRuntime)
         {
-            await _jsInterop.InvokeVoidAsync("AddVaRLine", "#returnshistorgram", VaR);
+            await _jsInterop.InvokeVoidAsync("CreateHistogram", Prices.Select(x => x.Return).ToList(), "#returnshistorgram");
+            if (VaR != null)
+            {
+                await _jsInterop.InvokeVoidAsync("AddVaRLine", "#returnshistorgram", VaR);
+            }
         }
+        
     }
 }

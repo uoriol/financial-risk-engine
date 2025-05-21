@@ -9,7 +9,7 @@
     [Parameter]
     public List<Price> Prices { get; set; } = new List<Price>();
 
-    private List<Price> _lastPrices = new();
+    private List<Price> _lastPrices = new List<Price>();
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -23,7 +23,7 @@
     protected override async Task OnParametersSetAsync()
     {
         // Compare prices list by reference or value
-        bool pricesChanged = !_lastPrices.SequenceEqual(Prices);
+        bool pricesChanged = !(_lastPrices.Count() > 0 && Prices.Count() > 0 && _lastPrices.Last() == Prices.Last());
 
         if (pricesChanged)
         {

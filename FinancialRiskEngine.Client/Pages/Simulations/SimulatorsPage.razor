@@ -9,7 +9,7 @@
                        OnClick="@DisplayPriceReturnsSimulatorComponent" />
         <SecondaryCard Title="Markov Chain Simulation"
                        Description="A basic example a simulation taking into account multiple possible states and volatility dependance."
-                       Implemented="false" />
+                       OnClick="@DisplayPriceReturnsMarkovSimulatorComponent" />
     </MudGrid>
 </div>
 
@@ -19,4 +19,8 @@
         _navigation.NavigateTo("/simulators/price-returns-simulator");
     }
 
+    private void DisplayPriceReturnsMarkovSimulatorComponent()
+    {
+        _navigation.NavigateTo("/simulators/price-returns-markov-simulator");
+    }
 }
