@@ -1,0 +1,74 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+@using FinancialRiskEngine.Engine.Calculators
+@inject IJSRuntime _jsInterop
+
+@* Based on chart studied on book Measuring market risk - Kevin Dowd p.24*@
+<div class="col-12">
+    <svg id="var-cl-plot"></svg>
+</div>
+
+@code {
+    [Parameter]
+    public List<Price> Prices { get; set; } = new List<Price>();
+
+    private List<Price> _lastPrices = new();
+
+    private List<double> _confidenceLevels = new List<double> { 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99 };
+
+    private class VaRConfidenceLevel
+    {
+        public double ConfidenceLevel { get; set; }
+        public double VaR { get; set; }
+    }
+
+    private List<VaRConfidenceLevel> _varConfidenceLevels = new List<VaRConfidenceLevel>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RenderChart();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Compare prices list by reference or value
+        bool pricesChanged = !_lastPrices.SequenceEqual(Prices);
+
+        if (pricesChanged)
+        {
+            await RenderChart();
+        }
+    }
+
+    private async Task RenderChart()
+    {
+        if (_jsInterop is IJSInProcessRuntime)
+        {
+            await UpdateVaRConfidenceLevelObject();
+            await _jsInterop.InvokeVoidAsync("CreateVaRConfidenceLevelChart", _varConfidenceLevels, "#var-cl-plot");
+            _lastPrices = Prices.ToList();
+        }
+    }
+
+    private async Task UpdateVaRConfidenceLevelObject()
+    {
+        _varConfidenceLevels = new List<VaRConfidenceLevel>();
+        var tasks = new List<Task>();
+        foreach (var confidenceLevel in _confidenceLevels)
+        {
+            tasks.Add(Task.Run(() =>
+            {
+                var varConfidenceLevel = new VaRConfidenceLevel
+                {
+                    ConfidenceLevel = confidenceLevel,
+                    VaR = VaRCalculator.ComputeValueAtRisk(Prices, confidenceLevel)
+                };
+                _varConfidenceLevels.Add(varConfidenceLevel);
+            }));
+        };
+        await Task.WhenAll(tasks);
+        _varConfidenceLevels = _varConfidenceLevels.OrderBy(x => x.ConfidenceLevel).ToList();
+    }
+}

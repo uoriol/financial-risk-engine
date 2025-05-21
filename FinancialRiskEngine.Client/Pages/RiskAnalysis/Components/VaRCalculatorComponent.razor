@@ -31,6 +31,9 @@
                         <MudTabPanel Text="Distribution Histogram">
                             <ReturnsDistributionHistogram Prices="@Prices" VaR="@_percentageVaR" />
                         </MudTabPanel>
+                        <MudTabPanel Text="Confidence Level Chart">
+                            <VaRConfidenceLevelChart Prices="@Prices" />
+                        </MudTabPanel>
                         <MudTabPanel Text="Table">
                             <ReturnsTable Prices="@Prices" Loading="@_loading" />
                         </MudTabPanel>
