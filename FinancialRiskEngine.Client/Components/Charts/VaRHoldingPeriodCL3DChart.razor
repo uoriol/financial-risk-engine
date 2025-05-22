@@ -1,0 +1,78 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+@using FinancialRiskEngine.Engine.Calculators
+@inject IJSRuntime _jsInterop
+
+<div class="col-12">
+    <div id="var-3D-plot"></div>
+</div>
+
+@code {
+    [Parameter]
+    public List<Price> Prices { get; set; } = new List<Price>();
+
+    private List<Price> _lastPrices = new();
+
+    private List<int> _days = new List<int> { 1, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100 };
+    private List<double> _confidenceLevels = new List<double> { 0.90, 0.91, 0.92, 0.93, 0.94, 0.95, 0.96, 0.97, 0.98, 0.99 };
+
+    private class VaRHoldingPeriodCL
+    {
+        public int HoldingPeriod { get; set; }
+        public double ConfidenceLevel { get; set; }
+        public double VaR { get; set; }
+    }
+
+    private List<VaRHoldingPeriodCL> _varMatrix = new List<VaRHoldingPeriodCL>();
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await RenderChart();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        if (HaveParametersChanged())
+        {
+            await RenderChart();
+        }
+    }
+
+    private bool HaveParametersChanged()
+    {
+        return !_lastPrices.SequenceEqual(Prices);
+    }
+
+    private async Task RenderChart()
+    {
+        if (_jsInterop is IJSInProcessRuntime)
+        {
+            await UpdateVaRConfidenceLevelObject();
+            await _jsInterop.InvokeVoidAsync("CreateVaRHoldingPeriodAndCL3DChart", _varMatrix, "#var-3D-plot");
+            _lastPrices = Prices.ToList();
+        }
+    }
+
+    private async Task UpdateVaRConfidenceLevelObject()
+    {
+        _varMatrix = new List<VaRHoldingPeriodCL>();
+        var tasks = new List<Task>();
+        foreach (var days in _days)
+        {
+            foreach(var cl in _confidenceLevels)
+            tasks.Add(Task.Run(() =>
+            {
+                var varHoldingPeriodCL = new VaRHoldingPeriodCL
+                {
+                    HoldingPeriod = days,
+                    ConfidenceLevel = cl,
+                    VaR = VaRCalculator.ComputeValueAtRisk(Prices, cl, days)
+                };
+                _varMatrix.Add(varHoldingPeriodCL);
+            }));
+        };
+        await Task.WhenAll(tasks);
+    }
+}
