@@ -1,0 +1,19 @@
+﻿@page "/risk-return-analysis"
+@using FinancialRiskEngine.Client.Components.Display
+@inject NavigationManager _navigation
+
+<div style="margin: 3em">
+    <MudGrid>
+        <SecondaryCard Title="Efficient Frontier"
+                       Description="A basic example that builds the efficient frontier scatterplot and the CML tangent."
+                       OnClick="@DisplayEfficientFrontierComponent" />
+    </MudGrid>
+</div>
+
+@code {
+    private void DisplayEfficientFrontierComponent()
+    {
+        _navigation.NavigateTo("/risk-return-analysis/efficient-frontier-calculator");
+    }
+
+}

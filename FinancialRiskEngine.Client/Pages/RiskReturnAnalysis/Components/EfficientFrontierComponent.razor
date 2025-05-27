@@ -1,0 +1,170 @@
+﻿@page "/risk-return-analysis/efficient-frontier-calculator"
+@using FinancialRiskEngine.Engine.Classes.Financial
+@using FinancialRiskEngine.Engine.Calculators
+@inject IJSRuntime jsInterop
+
+<MudText>
+    Assuming we have the following 3 portfolios:
+</MudText>
+
+@foreach (var portfolio in Portfolios)
+{
+    <MudCard>
+        <p><b>Portfolio @portfolio.Name</b></p>
+        <p>Expected return: @portfolio.ExpectedYearlyReturn.ToString("F2")</p>
+        <p>Standard deviation: @portfolio.ExpectedYearlyStandatdDeviation.ToString("F2")</p>
+    </MudCard>
+}
+
+<MudText>
+    We are also assuming a 4.2 % risk free rate
+</MudText>
+
+<MudButton Style="margin: 1em" Size="Size.Medium" Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => CreateGeneratedPortfolioScatterplot())">Generate Efficient Frontier</MudButton>
+<MudButton Style="margin: 1em" Size="Size.Medium" Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => CreateGeneratedPortfolioScatterplot(AddRF: true))">Introduce Risk Free Rate</MudButton>
+<MudButton Style="margin: 1em" Size="Size.Medium" Color="Color.Primary" Variant="Variant.Filled" OnClick="@(() => CreateGeneratedPortfolioScatterplot(AddRF: false, AddCML: true))">Add CML tangent</MudButton>
+
+@if (IsGeneratingConfigurations)
+{
+    <p>Generating combinations of portfolios...</p>
+    <div class="spinner-loader"></div>
+}
+<div id="generatedPortfoliosScatterPlot"></div>
+
+
+@code {
+    private bool IsGeneratingConfigurations = false;
+    private List<PortfolioSummary> Portfolios = new List<PortfolioSummary>
+    {
+        new PortfolioSummary("A", 10, 2),
+        new PortfolioSummary("B", 9, 1.7),
+        new PortfolioSummary("C", 7.5, 2.3)
+    };
+
+    public List<PortfolioSummary> GetRandomPortfolioConfigurations(List<PortfolioSummary> existingPortfolios, int n = 1500)
+    {
+        var generatedPortfolios = new List<PortfolioSummary>();
+        for(int i = 0; i < n; i++)
+        {
+            var newPortfolio = new PortfolioSummary(i.ToString(), 0, 0);
+            var randomWeights = GenerateRandomWeights(existingPortfolios.Count());
+            var weightedVariance = 0.0;
+            for(int p = 0; p < existingPortfolios.Count(); p++)
+            {
+                newPortfolio.ExpectedYearlyReturn += existingPortfolios[p].ExpectedYearlyReturn * randomWeights[p];
+                weightedVariance += randomWeights[p] * randomWeights[p] * existingPortfolios[p].ExpectedYearlyStandatdDeviation * existingPortfolios[p].ExpectedYearlyStandatdDeviation;
+            }
+            newPortfolio.ExpectedYearlyStandatdDeviation = Math.Sqrt(weightedVariance);
+            generatedPortfolios.Add(newPortfolio);
+        }
+        return generatedPortfolios;
+    }
+
+    public List<double> GenerateRandomWeights(int n)
+    {
+        Random rand = new Random();
+        List<double> weights = new List<double>();
+
+        // Generate n-1 random values between 0 and 1
+        double sum = 0;
+        for (int i = 0; i < n; i++)
+        {
+            weights.Add(rand.NextDouble());
+        }
+
+        double total = weights.Sum();
+
+        for (int i = 0; i < n; i++)
+        {
+            weights[i] = weights[i] / total;
+        }
+
+        return weights;
+    }
+
+    private void CreatePortfolioScatterplot()
+    {
+        jsInterop.InvokeVoidAsync("CreateScatterplot", Portfolios, "#portfoliosScatterPlot", true);
+    }
+
+    private async void CreateGeneratedPortfolioScatterplot(bool AddRF = false, bool AddCML = false)
+    {
+        IsGeneratingConfigurations = true;
+        StateHasChanged();
+        await Task.Yield();
+        var clonedPortfolios = Portfolios.Select(p => p.Clone()).ToList();
+        if (AddRF)
+        {
+            clonedPortfolios.Add(new PortfolioSummary("RFRate", 4.2, 0));
+        }
+
+        if (!AddCML)
+        {
+            await jsInterop.InvokeVoidAsync("CreateScatterplot", GetRandomPortfolioConfigurations(clonedPortfolios), "#generatedPortfoliosScatterPlot", false);
+        } else
+        {
+            var randomConfigurations = GetRandomPortfolioConfigurations(clonedPortfolios);
+            CML cml = new CML();
+            var tangentLine = cml.CalculateTangentLine(randomConfigurations, 4.2, true);
+            await jsInterop.InvokeVoidAsync("CreateScatterplotWithTangent", randomConfigurations, tangentLine, "#generatedPortfoliosScatterPlot", false);
+        }
+
+        IsGeneratingConfigurations = false;
+        StateHasChanged();
+    }
+
+    public class Point
+    {
+        public double x { get; set; }
+        public double y { get; set; }
+
+        public Point()
+        {
+
+        }
+
+        public Point(Point point)
+        {
+            x = point.x;
+            y = point.y;
+        }
+
+        public Point(double x, double y)
+        {
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public class CML
+    {
+        public List<Point> CalculateTangentLine(List<PortfolioSummary> efficientFrontier, double riskFreeRate, bool returnOnlyMinMax = false)
+        {
+            // Find the portfolio with the maximum sharpe ratio
+            var optimalPortfolio = efficientFrontier
+                .OrderByDescending(p => RiskPerformanceCalculator.ComputeSharpeRatio(p.ExpectedYearlyReturn, riskFreeRate, p.ExpectedYearlyStandatdDeviation))
+                .First();
+
+            double slope = (optimalPortfolio.ExpectedYearlyReturn - riskFreeRate) / optimalPortfolio.ExpectedYearlyStandatdDeviation;
+
+            // Generate CML points
+            var tangentLine = new List<Point>();
+            for (double stdDev = 0; stdDev <= optimalPortfolio.ExpectedYearlyStandatdDeviation * 2; stdDev += 0.01)
+            {
+                double expectedReturn = riskFreeRate + slope * stdDev;
+                tangentLine.Add(new Point(stdDev, expectedReturn));
+            }
+
+            if (returnOnlyMinMax)
+            {
+                return new List<Point>
+                {
+                    new Point(tangentLine.OrderBy(x => x.x).First()),
+                    new Point(tangentLine.OrderByDescending(x => x.x).First())
+                };
+            }
+
+            return tangentLine;
+        }
+    }
+}
