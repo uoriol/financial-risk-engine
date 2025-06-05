@@ -1,5 +1,6 @@
 ﻿@page "/risk-return-analysis/performance-measures"
 
+@using FinancialRiskEngine.Client.Components.CalculationInfo
 @using FinancialRiskEngine.Client.Components.Charts
 @using FinancialRiskEngine.Client.Components.Tables
 @using FinancialRiskEngine.Engine.Calculators
@@ -15,7 +16,7 @@
                         <MudNumericField @bind-Value="_mean" Label="Mean Daily Return (%)" Variant="Variant.Outlined" Style="margin-bottom: 1em" Min="-0.005" Max="0.006" Step="0.005" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
-                        <MudNumericField @bind-Value="_std" Min="0.006" Max="0.016" Label="Dailiy Volatility" Variant="Variant.Outlined" Step=".005" />
+                        <MudNumericField @bind-Value="_std" Min="0.006" Max="0.016" Label="Dailiy Volatility" Variant="Variant.Outlined" Step=".005" Style="margin-bottom: 1em" />
                     </MudItem>
                     <MudItem xs="12" sm="6">
                         <MudNumericField @bind-Value="_rfr" Min="0.0000" Max="0.20" Label="Risk Free Rate (Yearly)" Variant="Variant.Outlined" Step=".005" />
@@ -32,6 +33,7 @@
                 {
                     <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
                         <MudTabPanel Text="Time Chart">
+                            @* We can add the risk free rate line which will help with the interpretation *@
                             <ReturnsLineChart Prices="@SimulatedPrices" />
                         </MudTabPanel>
                         <MudTabPanel Text="Table">
@@ -44,28 +46,49 @@
     </div>
     <div style="margin-left: 1em; margin-top: 1.5em">
         <MudStack Spacing="4">
+            @* TODO : Add the daily and yearly returns and volatility to help the user with the formula *@
+            @* TODO : Add and document the formulas using MathJax *@
             <MudCard>
-                @if (_loading)
-                {
-                    <MudText Color="Color.Primary">Running simulations...</MudText>
-                }
-                else
-                {
-                    <MudText>Sharpe's Ratio</MudText>
-                    <MudText>@(_sharpeRatio == null ? "Unable to compute" : _sharpeRatio?.ToString("F2"))</MudText>
-
-                }
+                <div style="padding: 3em; text-align: center">
+                    @if (_loading)
+                    {
+                        <MudText Color="Color.Primary">Running simulations...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Sharpe's Ratio</MudText>
+                        @if (_sharpeRatio == null)
+                        {
+                            <MudText>Unable to compute</MudText>
+                        }
+                        else
+                        {
+                            <MudText>@_sharpeRatio?.ToString("F2")</MudText>
+                            <PerformanceIndicator Score="(double)_sharpeRatio" Measure="PerformanceIndicator.PerformanceMeasure.Sharpe" />
+                        }
+                    }
+                </div>
             </MudCard>
             <MudCard>
-                @if (_loading)
-                {
-                    <MudText Color="Color.Primary">Running simulations...</MudText>
-                }
-                else
-                {
-                    <MudText>Sortino's Ratio</MudText>
-                    <MudText>@(_sortinoRatio == null ? "Unable to compute" : _sortinoRatio?.ToString("F2"))</MudText>
-                }
+                <div style="padding: 3em; text-align: center">
+                    @if (_loading)
+                    {
+                        <MudText Color="Color.Primary">Running simulations...</MudText>
+                    }
+                    else
+                    {
+                        <MudText>Sortino's Ratio</MudText>
+                        @if (_sortinoRatio == null)
+                        {
+                            <MudText>Unable to compute</MudText>
+                        }
+                        else
+                        {
+                            <MudText>@_sortinoRatio?.ToString("F2")</MudText>
+                            <PerformanceIndicator Score="(double)_sortinoRatio" Measure="PerformanceIndicator.PerformanceMeasure.Sortino" />
+                        }
+                    }
+                </div>
             </MudCard>
         </MudStack>
 

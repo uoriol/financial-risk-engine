@@ -1,0 +1,88 @@
+﻿
+
+@{
+    switch (GetIndicator())
+    {
+        case IndicatorEnum.VeryGood:
+            <MudChip T="string" Color="Color.Success">Very Good</MudChip>
+            break;
+        case IndicatorEnum.Good:
+            <MudChip T="string" Color="Color.Success">Good</MudChip>
+            break;
+        case IndicatorEnum.Normal:
+            <MudChip T="string" Color="Color.Info">Normal</MudChip>
+            break;
+        case IndicatorEnum.Poor:
+            <MudChip T="string" Color="Color.Warning">Poor</MudChip>
+            break;
+        case IndicatorEnum.VeryPoor:
+            <MudChip T="string" Color="Color.Error">Very Poor</MudChip>
+            break;
+    }
+}
+
+
+@code {
+    [Parameter]
+    public double Score { get; set; }
+
+    [Parameter]
+    public PerformanceMeasure Measure { get; set; }
+
+    public enum PerformanceMeasure
+    {
+        Sharpe = 1,
+        Sortino = 2,
+        Jensen = 3,
+        IR = 4
+    }
+
+    public enum IndicatorEnum
+    {
+        VeryGood = 1,
+        Good = 2,
+        Normal = 3,
+        Poor = 4,
+        VeryPoor = 5,
+        NA = 6
+    }
+
+    private IndicatorEnum GetIndicator()
+    {
+        if(Measure == PerformanceMeasure.Sharpe)
+        {
+            switch (Score)
+            {
+                case > 2:
+                    return IndicatorEnum.VeryGood;
+                case > 1:
+                    return IndicatorEnum.Good;
+                case > 0.5:
+                    return IndicatorEnum.Normal;
+                case > 0:
+                    return IndicatorEnum.Poor;
+                default:
+                    return IndicatorEnum.VeryPoor;
+            }
+        }
+
+        if (Measure == PerformanceMeasure.Sortino)
+        {
+            switch (Score)
+            {
+                case > 2.5:
+                    return IndicatorEnum.VeryGood;
+                case > 1.5:
+                    return IndicatorEnum.Good;
+                case > 0.75:
+                    return IndicatorEnum.Normal;
+                case > 0:
+                    return IndicatorEnum.Poor;
+                default:
+                    return IndicatorEnum.VeryPoor;
+            }
+        }
+
+        return IndicatorEnum.NA;
+    }
+}
