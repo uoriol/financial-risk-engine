@@ -18,6 +18,9 @@ namespace FinancialRiskEngine.Engine.Classes.Financial
         [JsonPropertyName("return")]
         public double Return => (Open == 0) ? 0 : (Close - Open) / Open;
 
+        [JsonPropertyName("logReturn")]
+        public double LogReturn => (Open <= 0 || Close <= 0) ? 0 : Math.Log(Close / Open);
+
         public VolatilityScenario VolatilityScenario { get; set; } = VolatilityScenario.NORMAL;
 
         public Price() { }

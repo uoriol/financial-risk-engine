@@ -5,8 +5,11 @@
 <div style="margin: 3em">
     <MudGrid>
         <SecondaryCard Title="Efficient Frontier"
-                       Description="A basic example that builds the efficient frontier scatterplot and the CML tangent."
-                       OnClick="@DisplayEfficientFrontierComponent" />
+                        Description="A basic example that builds the efficient frontier scatterplot and the CML tangent."
+                        OnClick="@DisplayEfficientFrontierComponent" />
+        <SecondaryCard Title="Performance Measures"
+                        Description="Simple performance measure such as Sharpe's Ratio or Sortino's Ratio."
+                        OnClick="@DisplayPerformanceMeasuresComponent" />
     </MudGrid>
 </div>
 
@@ -14,6 +17,11 @@
     private void DisplayEfficientFrontierComponent()
     {
         _navigation.NavigateTo("/risk-return-analysis/efficient-frontier-calculator");
+    }
+
+    private void DisplayPerformanceMeasuresComponent()
+    {
+        _navigation.NavigateTo("/risk-return-analysis/performance-measures");
     }
 
 }

@@ -1,0 +1,113 @@
+﻿@page "/risk-return-analysis/performance-measures"
+
+@using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Components.Tables
+@using FinancialRiskEngine.Engine.Calculators
+@using FinancialRiskEngine.Engine.Classes.Financial
+@using FinancialRiskEngine.Engine.Simulators
+
+<div style="display: inline-flex">
+    <div style="width: 50vw; margin-left: 1.5em; margin-top: 1.5em">
+        <MudStack Spacing="4">
+            <MudCard Elevation="3">
+                <MudCardContent>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_mean" Label="Mean Daily Return (%)" Variant="Variant.Outlined" Style="margin-bottom: 1em" Min="-0.005" Max="0.006" Step="0.005" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_std" Min="0.006" Max="0.016" Label="Dailiy Volatility" Variant="Variant.Outlined" Step=".005" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_rfr" Min="0.0000" Max="0.20" Label="Risk Free Rate (Yearly)" Variant="Variant.Outlined" Step=".005" />
+                    </MudItem>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@SimulateReturns">Simulate Returns (Single normal returns)</MudButton>
+                </MudCardContent>
+            </MudCard>
+            <MudCard>
+                @if (_loading)
+                {
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+                }
+                else
+                {
+                    <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                        <MudTabPanel Text="Time Chart">
+                            <ReturnsLineChart Prices="@SimulatedPrices" />
+                        </MudTabPanel>
+                        <MudTabPanel Text="Table">
+                            <ReturnsTable Prices="@SimulatedPrices" Loading="@_loading" />
+                        </MudTabPanel>
+                    </MudTabs>
+                }
+            </MudCard>
+        </MudStack>
+    </div>
+    <div style="margin-left: 1em; margin-top: 1.5em">
+        <MudStack Spacing="4">
+            <MudCard>
+                @if (_loading)
+                {
+                    <MudText Color="Color.Primary">Running simulations...</MudText>
+                }
+                else
+                {
+                    <MudText>Sharpe's Ratio</MudText>
+                    <MudText>@(_sharpeRatio == null ? "Unable to compute" : _sharpeRatio?.ToString("F2"))</MudText>
+
+                }
+            </MudCard>
+            <MudCard>
+                @if (_loading)
+                {
+                    <MudText Color="Color.Primary">Running simulations...</MudText>
+                }
+                else
+                {
+                    <MudText>Sortino's Ratio</MudText>
+                    <MudText>@(_sortinoRatio == null ? "Unable to compute" : _sortinoRatio?.ToString("F2"))</MudText>
+                }
+            </MudCard>
+        </MudStack>
+
+    </div>
+</div>
+
+@code {
+    private List<Price> SimulatedPrices = new List<Price>();
+    private double _mean = 0.001;
+    private double _std = 0.008;
+    private double _rfr = 0.02;
+
+    private double? _sharpeRatio = null;
+    private double? _sortinoRatio = null;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await SimulateReturns();
+    }
+
+    private bool _loading = false;
+
+    private async Task SimulateReturns()
+    {
+        Thread.Sleep(50);
+        _loading = true;
+        StateHasChanged();
+
+        var SimulatedPricesTask = Task.Run(() =>
+            PriceSimulator.GetSimulatedPricesNormalDistributionOptimizedAsync(n: 1000, mean: _mean, std: _std)
+        );
+
+        SimulatedPrices = await SimulatedPricesTask;
+        SetPerformanceMeasures();
+
+        _loading = false;
+        StateHasChanged(); // Trigger final render
+    }
+
+    private void SetPerformanceMeasures()
+    {
+        _sharpeRatio = PerformanceMetricsCalculator.ComputeSharpeRatio(SimulatedPrices, _rfr);
+        _sortinoRatio = PerformanceMetricsCalculator.ComputeSortinoRatio(SimulatedPrices, _rfr);
+    }
+}
