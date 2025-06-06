@@ -1,4 +1,6 @@
-﻿using FinancialRiskEngine.Engine.Classes.Financial;
+﻿using FinancialRiskEngine.Engine.Calculators;
+using FinancialRiskEngine.Engine.Classes.Financial;
+using FinancialRiskEngine.Engine.Classes.Interfaces;
 using MathNet.Numerics.Distributions;
 using MathNet.Numerics.Providers.LinearAlgebra;
 using MathNet.Numerics.Random;
@@ -93,6 +95,21 @@ namespace FinancialRiskEngine.Engine.Simulators
                 > 0.25m and <= (0.30m + 0.25m) => VolatilityScenario.STRESS,
                 _ => VolatilityScenario.HIGH_VOLATILITY
             };
+        }
+
+        public static async Task<List<List<Price>>> GetMultipleSimulatedPricesNormalDistributionOptimizedAsync(int n = 1000, double mean = 0.001, double std = 0.008, double open = 100, int runs = 1)
+        {
+            var result = new List<List<Price>>();
+            var tasks = new List<Task>();
+            for (int i = 0; i < runs; i++)
+            {
+                tasks.Add(Task.Run(async () => {
+                    var simulation = await GetSimulatedPricesNormalDistributionOptimizedAsync(n, mean, std, open);
+                    result.Add(simulation);
+                }));
+            }
+            await Task.WhenAll(tasks);
+            return result;
         }
 
         public static async Task<List<Price>> GetSimulatedPricesNormalDistributionOptimizedAsync(int n = 1000, double mean = 0.001, double std = 0.008, double open = 100)

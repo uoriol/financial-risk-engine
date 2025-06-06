@@ -44,7 +44,13 @@ namespace FinancialRiskEngine.Engine.Calculators
             return riskFreeRate / tradingDays;
         }
 
-        private static double ComputeJensenAlpha(List<Price> prices, double beta, double riskFreeRate)
+        public static double ComputeTreynorRatio(List<Price> prices, double beta, double riskFreeRate)
+        {
+            // (return - rfr) / beta
+            return GetYearlyExcessReturn(prices, riskFreeRate) / beta;
+        }
+
+        public static double ComputeJensenAlpha(List<Price> prices, double beta, double riskFreeRate)
         {
             // return - [rfr + Beta*(excess return)]
 

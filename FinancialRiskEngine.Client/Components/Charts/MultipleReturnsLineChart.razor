@@ -1,0 +1,43 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+@using static FinancialRiskEngine.Client.Components.CalculationInfo.PerformanceIndicator
+@inject IJSRuntime jsInterop
+
+<div id="@ContainerId" style="@CustomStyle"></div>
+
+
+@code {
+    [Parameter]
+    public List<List<Price>>? ListPriceSimulations { get; set; } = null;
+
+    [Parameter]
+    public string ContainerId { get; set; } = "div-id-" + new Random().NextSingle().ToString();
+
+    [Parameter]
+    public int Width { get; set; } = 20;
+
+    [Parameter]
+    public int Height { get; set; } = 20;
+
+    [Parameter]
+    public PerformanceMeasure? PerformanceMeasure { get; set; } = null;
+
+    [Parameter]
+    public List<double> PerformanceMeasureResults { get; set; } = new List<double>();
+
+    public string CustomStyle => "height: " + Height + "vh; width: " + Width + "vw";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            if (PerformanceMeasureResults.Count() == ListPriceSimulations?.Count())
+            {
+                await jsInterop.InvokeVoidAsync("representSimulation", ListPriceSimulations, ContainerId, PerformanceMeasureResults);
+            } else
+            {
+                await jsInterop.InvokeVoidAsync("representSimulation", ListPriceSimulations, ContainerId);
+            }
+            
+        }
+    }
+}
