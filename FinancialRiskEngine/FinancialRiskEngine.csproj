@@ -12,6 +12,7 @@
     <ProjectReference Include="..\FinancialRiskEngine.Client\FinancialRiskEngine.Client.csproj" />
     <ProjectReference Include="..\FinancialRiskEngine.Engine\FinancialRiskEngine.Engine.csproj" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.24.0" />
+    <PackageReference Include="CsvHelper" Version="33.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="9.*" />
     <PackageReference Include="Microsoft.Azure.Devices" Version="1.40.0" />
   </ItemGroup>

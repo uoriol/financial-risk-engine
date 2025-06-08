@@ -1,0 +1,16 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+
+<MudCard Style="color: white; margin:1em; padding: 1em; padding: 1em; background: linear-gradient(90deg, rgba(42, 123, 155, 1) 0%, rgba(87, 199, 133, 1) 50%, rgba(237, 221, 83, 1) 100%);">
+    <p><b>Portfolio @Summary.Name</b></p>
+    <p>Expected return: @((Summary.ExpectedYearlyReturn / 100).ToString("P2"))</p>
+    <p>Standard deviation: @((Summary.ExpectedYearlyStandatdDeviation / 100).ToString("P2"))</p>
+</MudCard>
+
+
+@code {
+    [Parameter]
+    public PortfolioSummary Summary { get; set; }
+
+    private double _percentualYearlyReturn => Summary == null ? 0 : (double)Summary?.ExpectedYearlyReturn / 100;
+    private double _percentualVolatilityReturn => Summary == null ? 0 : (double)Summary?.ExpectedYearlyStandatdDeviation / 100;
+}

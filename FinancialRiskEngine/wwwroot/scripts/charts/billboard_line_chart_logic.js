@@ -1,6 +1,6 @@
 ﻿function representSimulation(priceData, divId, measureRiskValues = undefined) {
-    console.log(divId);
-    console.log(priceData);
+    //console.log(divId);
+    //console.log(priceData);
     const chartConfig = {
         data: {
             x: "x",
@@ -22,7 +22,7 @@
         legend: { show: false },
         tooltip: { show: false },
         point: { show: false },
-        zoom: { enabled: false, type: "drag" },
+        zoom: { enabled: true, type: "drag" },
         bindto: "#" + divId
     };
 
@@ -37,16 +37,24 @@
         let timePass = (100 * i) + 100;
 
         const seriesName = "data" + i;
-        const color = getSharpeColor(measureRiskValues[i]);
+        if (measureRiskValues != undefined && Array.isArray(measureRiskValues)) {
+            const color = getSharpeColor(measureRiskValues[i]);
 
-        setTimeout(function () {
-            simulationchart.load({
-                columns: [getPricePlotData(priceData[i], seriesName)],
-                colors: {
-                    [seriesName]: color
-                }
-            });
-        }, timePass);
+            setTimeout(function () {
+                simulationchart.load({
+                    columns: [getPricePlotData(priceData[i], seriesName)],
+                    colors: {
+                        [seriesName]: color
+                    }
+                });
+            }, timePass);
+        } else {
+            setTimeout(function () {
+                simulationchart.load({
+                    columns: [getPricePlotData(priceData[i], seriesName)]
+                });
+            }, timePass);
+        }
     }
 }
 

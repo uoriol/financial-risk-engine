@@ -5,8 +5,20 @@
 <div style="margin: 3em">
     <MudGrid>
         <SecondaryCard Title="VaR Calculator"
-                       Description="A basic calculator that returns the VaR using different methods and time horizons."
-                       OnClick="@DisplayVaRCalculatorComponent" />
+        Description="A basic calculator that returns the VaR (Value at Risk) using different methods and time horizons."
+        OnClick="@DisplayVaRCalculatorComponent" />
+        <SecondaryCard Title="ES Calculator"
+        Description="A basic calculator to represent Expected Shortfall (cVaR or conditional VaR)."
+        Implemented="false"/>
+        <SecondaryCard Title="Marginal VaR Calculator"
+        Description="No description"
+        Implemented="false" />
+        <SecondaryCard Title="EWNA Model"
+        Description="Example of an EWMA model to predict volatility on the S&P 500"
+        OnClick="@DisplayEWMACalculatorComponent" />
+        <SecondaryCard Title="GARCH Model"
+        Description="No description"
+        Implemented="false" />
     </MudGrid>
 </div>
 
@@ -16,4 +28,8 @@
         _navigation.NavigateTo("/risk-analysis/var-calculator");
     }
 
+    private void DisplayEWMACalculatorComponent()
+    {
+        _navigation.NavigateTo("/risk-analysis/ewma-calculator");
+    }
 }

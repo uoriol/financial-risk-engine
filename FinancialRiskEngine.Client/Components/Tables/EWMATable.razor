@@ -1,0 +1,122 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+
+@if (Loading)
+{
+    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+}
+else
+{
+    <MudTable Items="Prices" Elevation="1" Dense="true">
+        <HeaderContent>
+            <MudTh>Actual Return</MudTh>
+            <MudTh>Estimated Return</MudTh>
+            <MudTh>Actual Close</MudTh>
+            <MudTh>Estimated Close</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Style="@GetCellStyle(context.Return)">@context.Return.ToString("P2")</MudTd>
+            <MudTd Style="@GetCellStyle(context.Return)">@context.Return.ToString("P2")</MudTd>
+
+            <MudTd>@context.Open.ToString("F4")</MudTd>
+            <MudTd>@context.Close.ToString("F4")</MudTd>
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+}
+
+
+@code {
+    [Parameter]
+    public List<Price> Prices { get; set; } = new List<Price>();
+
+    [Parameter]
+    public bool Loading { get; set; } = false;
+
+    [Parameter]
+    public List<Price> Estimation { get; set; } = new List<Price>();
+
+    [Parameter]
+    public string ReturnsTitle { get; set; } = "Returns";
+
+    private class EstimationDelta
+    {
+        public DateTime Date { get; set; }
+        public double ActualReturn { get; set; }
+        public double EstimatedReturn { get; set; }
+        public double ActualClose { get; set; }
+        public double EstimatedClose { get; set; }
+        public double ReturnDelta => EstimatedReturn - ActualReturn;
+
+        public EstimationDelta()
+        {
+            
+        }
+
+        public EstimationDelta(Price price, Price estimation)
+        {
+            Date = price.Date;
+            ActualReturn = price.Return;
+            EstimatedReturn = estimation.Return;
+            ActualClose = price.Close;
+            EstimatedClose = estimation.Close;
+        }
+    }
+
+    private string GetCellStyle2(double value)
+    {
+        if (value > 0)
+        {
+            return "color: green;";
+        }
+        else if (value < 0)
+        {
+            return "color: red;";
+        }
+        return "";
+    }
+
+    private string GetCellStyle(double returnValue)
+    {
+        // This is completely done with ChatGPT :)
+
+        // Clamp and normalize return between -1 and 1
+        double maxAbsReturn = 0.05;
+        double clamped = Math.Max(-maxAbsReturn, Math.Min(maxAbsReturn, returnValue));
+        double normalized = clamped / maxAbsReturn;
+
+        // White base color
+        int baseR = 255, baseG = 255, baseB = 255;
+
+        // Red target: #d44242 → RGB(212, 66, 66)
+        int redR = 212, redG = 66, redB = 66;
+
+        // Green target: #24ab4f → RGB(36, 171, 79)
+        int greenR = 36, greenG = 171, greenB = 79;
+
+        int r, g, b;
+        if (normalized < 0)
+        {
+            double factor = -normalized;
+            r = (int)(baseR + (redR - baseR) * factor);
+            g = (int)(baseG + (redG - baseG) * factor);
+            b = (int)(baseB + (redB - baseB) * factor);
+        }
+        else
+        {
+            double factor = normalized;
+            r = (int)(baseR + (greenR - baseR) * factor);
+            g = (int)(baseG + (greenG - baseG) * factor);
+            b = (int)(baseB + (greenB - baseB) * factor);
+        }
+
+        string bgColor = $"rgb({r}, {g}, {b})";
+
+        // Luminance for text color decision
+        double luminance = 0.299 * r + 0.587 * g + 0.114 * b;
+        string textColor = luminance < 140 ? "white" : "black";
+
+        return $"background-color: {bgColor}; color: {textColor}";
+    }
+}

@@ -3,6 +3,7 @@ using System.Collections;
 using System.Text.Json;
 using FinancialRiskEngine.ServiceRepository.Implemetations;
 using FinancialRiskEngine.ServiceRepository.Interfaces;
+using FinancialRiskEngine.Helper;
 
 namespace FinancialRiskEngine.Controllers
 {
@@ -27,6 +28,12 @@ namespace FinancialRiskEngine.Controllers
             string folder = folderElement is JsonElement je2 ? je2.GetString()! : folderElement.ToString();
             var content = _blobService.DownloadBlobFile(blobName, folder);
             return File(content, "application/pdf", $"{blobName}.pdf");
+        }
+
+        [HttpGet("get-sp500-returns")]
+        public IActionResult GetSP500Returns()
+        {
+            return Ok(FileReader.GetHistoricalSP500Values());
         }
     }
 }

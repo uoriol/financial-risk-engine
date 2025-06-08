@@ -1,0 +1,114 @@
+﻿@page "/risk-analysis/ewma-calculator"
+@using FinancialRiskEngine.Client.Services
+@using FinancialRiskEngine.Engine.Calculators
+@using FinancialRiskEngine.Engine.Classes.Financial
+@inject FileService _fileService
+
+<div style="display: inline-flex">
+    <div style="width: 50vw; margin-left: 1.5em; margin-top: 1.5em">
+        <MudStack Spacing="4">
+            <MudCard Elevation="3">
+                <MudCardContent>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_lambda" Label="Lambda" Variant="Variant.Outlined" Style="margin-bottom: 1em" Min="0.75" Max="1" Step="0.01" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_nDays" Min="1" Max="100" Label="Number of days in model" Variant="Variant.Outlined" Step="1" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6">
+                        <MudNumericField @bind-Value="_chartDays" Min="100" Max="@Math.Max(100, SP500.Count())" Label="Number of days represented in chart" Variant="Variant.Outlined" Step="50" />
+                    </MudItem>
+                    <MudText>This is the S&P 500 returns and the EWMA volatility analysis prediction</MudText>
+                    <MudButton ButtonType="ButtonType.Button" Color="Color.Primary" OnClick="@ComputeEWMA">Compute EWMA</MudButton>
+
+                </MudCardContent>
+            </MudCard>
+            <MudCard>
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                    <MudTabPanel Text="Time Chart">
+                        @if (EWMAValues.Count() > 0)
+                        {
+                            <FinancialRiskEngine.Client.Components.Charts.MultipleReturnsLineChart ListPriceSimulations="ListPriceSimulations" ContainerId="test" Height="40" Width="40" />
+                        }
+                    </MudTabPanel>
+                    <MudTabPanel Text="Table">
+                        <p>Not yet implemented</p>
+                    </MudTabPanel>
+                </MudTabs>
+                @if (_loading)
+                {
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+                }
+                else
+                {
+                    
+                }
+            </MudCard>
+        </MudStack>
+    </div>
+</div>
+
+@code {
+    private List<Price> VolatilityValues = new List<Price>();
+    private List<Price> SP500 = new List<Price>();
+    private List<Price> EWMAValues = new List<Price>();
+
+    private bool _loading = false;
+
+    private double _lambda = 0.9;
+    private int _nDays = 3;
+    private int _chartDays = 100;
+
+    private List<List<Price>> ListPriceSimulations = new List<List<Price>>();
+
+    // protected override async Task OnInitializedAsync()
+    // {
+    //     // VolatilityValues = FileReader.GetHistoricalVolatilityIndexValues();
+    //     // SP500 = FileReader.GetHistoricalSP500Values().OrderBy(p => p.Date).ToList();
+    //     // await ComputeEWMA();
+    // }
+
+    private async Task ComputeEWMA()
+    {
+        _loading = true;
+        StateHasChanged();
+        EWMAValues = new List<Price>();
+        SP500 = (await _fileService.GetSPReturns()).OrderBy(p => p.Date).ToList();
+        var ewma = VolatilityEstimationCalculator.ComputeEWMA(SP500, nDays: _nDays, lambda: _lambda).OrderBy(v => v.Date).ToList();
+        for (int i = 0; i < ewma.Count; i++)
+        {
+            if(i == 0)
+            {
+                EWMAValues.Add(new Price
+                {
+                    Open = SP500[0].Open,
+                    Close = SP500[0].Open + (SP500[0].Open * ewma[0].Volatility)
+                });
+                continue;
+            }
+
+            EWMAValues.Add(new Price
+            {
+                Open = SP500[i].Open,
+                    Close = SP500[i - 1].Close + (SP500[i - 1].Close * ewma[i - 1].Volatility)
+            });
+
+            if (EWMAValues[i].Close  == 0)
+            {
+                Console.WriteLine($"EWMA value is too low: {EWMAValues[i].Close} at index {i} date {EWMAValues[i].Date}");
+            }
+        }
+        SetListOfPrices();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void SetListOfPrices()
+    {
+        ListPriceSimulations = new List<List<Price>>
+        {
+            SP500.TakeLast(_chartDays).ToList(),
+            EWMAValues.TakeLast(_chartDays).ToList()
+        };
+    }
+}
