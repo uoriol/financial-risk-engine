@@ -14,8 +14,30 @@ namespace FinancialRiskEngine.Engine.Calculators
     }
     public static class VolatilityEstimationCalculator
     {
-        public static List<EWMAEstimation> ComputeEWMA(List<Price> prices, double lambda = 0.9, int nDays = 3)
+        public static List<EWMAEstimation> ComputeEWMA(List<Price> prices, double lambda = 0.9)
         {
+            var volatilityEstimations = new List<EWMAEstimation>();
+            prices = prices.OrderBy(p => p.Date).ToList();
+            volatilityEstimations.Add(new EWMAEstimation
+            {
+                Date = prices[0].Date,
+                Volatility = 0
+            });
+            for (int t = 1; t < prices.Count; t++)
+            {
+                var ewma = (lambda * Math.Pow(volatilityEstimations[t - 1].Volatility, 2)) + ((1 - lambda) * Math.Pow(prices[t - 1].Return, 2));
+                volatilityEstimations.Add(new EWMAEstimation
+                {
+                    Date = prices[t].Date,
+                    Volatility = Math.Sqrt(ewma)
+                });
+            }
+            return volatilityEstimations;
+        }
+
+        public static List<EWMAEstimation> ComputeEWMA_Approximation(List<Price> prices, int nDays = 3)
+        {
+            var lambda = 1 - ((double)1 / nDays);
             var volatilityEstimations = new List<EWMAEstimation>();
             prices = prices.OrderBy(p => p.Date).ToList();
             volatilityEstimations.Add(new EWMAEstimation

@@ -1,4 +1,5 @@
 ﻿@page "/risk-analysis/ewma-calculator"
+@using FinancialRiskEngine.Client.Components.CalculationInfo
 @using FinancialRiskEngine.Client.Services
 @using FinancialRiskEngine.Engine.Calculators
 @using FinancialRiskEngine.Engine.Classes.Financial
@@ -8,18 +9,20 @@
     <div style="width: 50vw; margin-left: 1.5em; margin-top: 1.5em">
         <MudStack Spacing="4">
             <MudCard Elevation="3">
-                <MudCardContent>
-                    <MudItem xs="12" sm="6">
-                        <MudNumericField @bind-Value="_lambda" Label="Lambda" Variant="Variant.Outlined" Style="margin-bottom: 1em" Min="0.75" Max="1" Step="0.01" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudNumericField @bind-Value="_nDays" Min="1" Max="100" Label="Number of days in model" Variant="Variant.Outlined" Step="1" />
-                    </MudItem>
-                    <MudItem xs="12" sm="6">
-                        <MudNumericField @bind-Value="_chartDays" Min="100" Max="@Math.Max(100, SP500.Count())" Label="Number of days represented in chart" Variant="Variant.Outlined" Step="50" />
-                    </MudItem>
-                    <MudText>This is the S&P 500 returns and the EWMA volatility analysis prediction</MudText>
-                    <MudButton ButtonType="ButtonType.Button" Color="Color.Primary" OnClick="@ComputeEWMA">Compute EWMA</MudButton>
+                <MudCardContent Style="text-align: center">
+                    <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" Style="margin:1em">Lambda (λ) = @_lambda.ToString("F4")</MudChip>
+                    <MudGrid Style="margin-bottom:1em">
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_nDays" Min="1" Max="100" Label="Number of days in model" Variant="Variant.Outlined" Step="1" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_chartDays" Min="100" Max="@Math.Max(100, SP500.Count())" Label="Number of days represented in chart" Variant="Variant.Outlined" Step="50" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudAlert Severity="Severity.Normal">This is the S&P 500 returns and the EWMA volatility analysis prediction</MudAlert>
+                    <MudAlert Severity="Severity.Info" Style="text-align: left">The <span style="color: darkorange">orange</span> line represent the actual formula, the
+                        <span style="color: green">green</span> line represent the approximation (more information on the formulas tab)</MudAlert>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ComputeEWMA" Style="margin: 1em">Compute EWMA</MudButton>
 
                 </MudCardContent>
             </MudCard>
@@ -34,6 +37,94 @@
                     <MudTabPanel Text="Table">
                         <p>Not yet implemented</p>
                     </MudTabPanel>
+                    <CalculationInfoFormulas>
+                        <p>Instead of giving equal weight to the returns of the sample, we apply weight so that they
+                            decline exponentially as we go back.
+                        </p>
+                        <p>
+                            \[
+                            \sigma_t^2 = \lambda \cdot \sigma_{t-1}^2 + (1 - \lambda) \cdot r_{t-1}^2
+                            \]
+                        </p>
+                        <p>
+                            or also:
+                        </p>
+                        <p>
+                            \[
+                            \text{EWMA}_t = \lambda \cdot \text{EWMA}_{t-1} + (1 - \lambda) \cdot r_{t-1}^2
+                            \]
+                        </p>
+                        <p>
+                            Which represents:
+                        </p>
+                        <p>
+                            \[
+                            \text{EWMA}_t = \lambda \left( \lambda \cdot \text{EWMA}_{t-2} + (1 - \lambda) \cdot r_{t-2}^2 \right) + (1 - \lambda) \cdot r_{t-1}^2
+                            \]
+                        </p>
+                        <p>
+                            \[
+                            \text{EWMA}_t = \lambda \left( \lambda \left( \lambda \cdot \text{EWMA}_{t-3} + (1 - \lambda) \cdot r_{t-3}^2 \right) + (1 - \lambda) \cdot r_{t-2}^2 \right) + (1 - \lambda) \cdot r_{t-1}^2
+                            \]
+                        </p>
+                        <p>and so forth...</p>
+                        <p>
+                            The number of days you want to look back in time determines the decaying factor:
+                        </p>
+                        <p>
+                            \[
+                            \lambda = 1 - \left( \frac{1}{N} \right)
+                            \]
+                        </p>
+                        <p>Or viceversa:</p>
+                        <p>
+                            \[
+                            N = \frac{1}{1 - \lambda}
+                            \]
+                        </p>
+                        <p>N can be simply though of as "days of memory"</p>
+                        <p>
+                            The formula of EWMA can be unrolled in the following way:
+                        </p>
+                        <p>
+                            \[
+                            \text{EWMA}_t = (1 - \lambda) \sum_{i=1}^{N} \lambda^{i-1} \cdot r_{t-i}^2
+                            \]
+                        </p>
+                        <p>This can be calculated from:</p>
+                        <p>
+                            Recursive formula:
+                            \[
+                            \text{EWMA}_t = \lambda \cdot \text{EWMA}_{t-1} + (1 - \lambda) \cdot r_{t-1}^2
+                            \]
+
+                            Substitute \(\text{EWMA}_{t-1}\):
+                            \[
+                            = \lambda \left( \lambda \cdot \text{EWMA}_{t-2} + (1 - \lambda) \cdot r_{t-2}^2 \right) + (1 - \lambda) \cdot r_{t-1}^2
+                            \]
+
+                            Expand:
+                            \[
+                            = \lambda^2 \cdot \text{EWMA}_{t-2} + \lambda(1 - \lambda) \cdot r_{t-2}^2 + (1 - \lambda) \cdot r_{t-1}^2
+                            \]
+
+                            Continue substituting recursively:
+                            \[
+                            = \lambda^3 \cdot \text{EWMA}_{t-3} + \lambda^2(1 - \lambda) \cdot r_{t-3}^2 + \lambda(1 - \lambda) \cdot r_{t-2}^2 + (1 - \lambda) \cdot r_{t-1}^2
+                            \]
+
+                            After unrolling N steps:
+                            \[
+                            \text{EWMA}_t = (1 - \lambda) \sum_{i=1}^{N} \lambda^{i-1} \cdot r_{t-i}^2 + \lambda^N \cdot \text{EWMA}_{t-N}
+                            \]
+
+                            If \(\lambda^N \cdot \text{EWMA}_{t-N} \approx 0\), then:
+                            \[
+                            \text{EWMA}_t \approx (1 - \lambda) \sum_{i=1}^{N} \lambda^{i-1} \cdot r_{t-i}^2
+                            \]
+                        </p>
+                        <p>(We are applying this formula in the <span style="color: green">green</span> line in the chart)</p>
+                    </CalculationInfoFormulas>
                 </MudTabs>
                 @if (_loading)
                 {
@@ -41,7 +132,7 @@
                 }
                 else
                 {
-                    
+
                 }
             </MudCard>
         </MudStack>
@@ -52,37 +143,50 @@
     private List<Price> VolatilityValues = new List<Price>();
     private List<Price> SP500 = new List<Price>();
     private List<Price> EWMAValues = new List<Price>();
+    private List<Price> EWMAValues_APPROXIMATION = new List<Price>();
 
     private bool _loading = false;
 
-    private double _lambda = 0.9;
+    private double _lambda => 1 - ((double)1/_nDays);
     private int _nDays = 3;
     private int _chartDays = 100;
 
     private List<List<Price>> ListPriceSimulations = new List<List<Price>>();
 
-    // protected override async Task OnInitializedAsync()
-    // {
-    //     // VolatilityValues = FileReader.GetHistoricalVolatilityIndexValues();
-    //     // SP500 = FileReader.GetHistoricalSP500Values().OrderBy(p => p.Date).ToList();
-    //     // await ComputeEWMA();
-    // }
+    protected override async Task OnInitializedAsync()
+    {
+        await ComputeEWMA();
+    }
 
     private async Task ComputeEWMA()
     {
         _loading = true;
         StateHasChanged();
         EWMAValues = new List<Price>();
+        EWMAValues_APPROXIMATION = new List<Price>();
+
         SP500 = (await _fileService.GetSPReturns()).OrderBy(p => p.Date).ToList();
-        var ewma = VolatilityEstimationCalculator.ComputeEWMA(SP500, nDays: _nDays, lambda: _lambda).OrderBy(v => v.Date).ToList();
+
+        var ewma = VolatilityEstimationCalculator.ComputeEWMA(SP500, lambda: _lambda).OrderBy(v => v.Date).ToList();
+        var ewma_APPROX = VolatilityEstimationCalculator.ComputeEWMA_Approximation(SP500, nDays: _nDays).OrderBy(v => v.Date).ToList();
+
         for (int i = 0; i < ewma.Count; i++)
         {
+            if (ewma[i].Volatility != ewma_APPROX[i].Volatility && i > 900)
+            {
+                Console.WriteLine($"EWMA values do not match at index {i}: {ewma[i].Volatility} vs {ewma_APPROX[i].Volatility} for date {ewma[i].Date}");
+            }
             if(i == 0)
             {
                 EWMAValues.Add(new Price
                 {
                     Open = SP500[0].Open,
                     Close = SP500[0].Open + (SP500[0].Open * ewma[0].Volatility)
+                });
+                EWMAValues_APPROXIMATION.Add(new Price
+                {
+                    Open = SP500[0].Open,
+                    Close = SP500[0].Open + (SP500[0].Open * ewma_APPROX[0].Volatility)
                 });
                 continue;
             }
@@ -91,6 +195,12 @@
             {
                 Open = SP500[i].Open,
                     Close = SP500[i - 1].Close + (SP500[i - 1].Close * ewma[i - 1].Volatility)
+            });
+
+            EWMAValues_APPROXIMATION.Add(new Price
+            {
+                Open = SP500[i].Open,
+                Close = SP500[i - 1].Close + (SP500[i - 1].Close * ewma_APPROX[i - 1].Volatility)
             });
 
             if (EWMAValues[i].Close  == 0)
@@ -108,7 +218,8 @@
         ListPriceSimulations = new List<List<Price>>
         {
             SP500.TakeLast(_chartDays).ToList(),
-            EWMAValues.TakeLast(_chartDays).ToList()
+            EWMAValues.TakeLast(_chartDays).ToList(),
+            EWMAValues_APPROXIMATION.TakeLast(_chartDays).ToList()
         };
     }
 }
