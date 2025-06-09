@@ -7,10 +7,19 @@ using System.Threading.Tasks;
 
 namespace FinancialRiskEngine.Engine.Calculators
 {
-    public class EWMAEstimation
+    public class VolatilityEstimation
     {
         public DateTime Date { get; set; }
         public double Volatility { get; set; }
+    }
+    public class EWMAEstimation : VolatilityEstimation
+    {
+        
+    }
+
+    public class GARCHEstimation : VolatilityEstimation
+    {
+        
     }
     public static class VolatilityEstimationCalculator
     {
@@ -57,6 +66,27 @@ namespace FinancialRiskEngine.Engine.Calculators
                 {
                     Date = prices[t].Date,
                     Volatility = Math.Sqrt(ewma)
+                });
+            }
+            return volatilityEstimations;
+        }
+
+        public static List<GARCHEstimation> ComputeGARCH(List<Price> prices, double alpha_0 = 0.000002, double alpha_1 = 0.13, double beta = 0.86)
+        {
+            var volatilityEstimations = new List<GARCHEstimation>();
+            prices = prices.OrderBy(p => p.Date).ToList();
+            volatilityEstimations.Add(new GARCHEstimation
+            {
+                Date = prices[0].Date,
+                Volatility = alpha_0 // The initial volatility will be the intercept
+            });
+            for (int t = 1; t < prices.Count; t++)
+            {
+                var garch = alpha_0 + (alpha_1 * Math.Pow(prices[t-1].Return, 2)) + (beta * Math.Pow(volatilityEstimations[t-1].Volatility,2));
+                volatilityEstimations.Add(new GARCHEstimation
+                {
+                    Date = prices[t].Date,
+                    Volatility = Math.Sqrt(garch)
                 });
             }
             return volatilityEstimations;

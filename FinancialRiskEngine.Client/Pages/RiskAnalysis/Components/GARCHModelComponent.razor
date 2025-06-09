@@ -1,0 +1,150 @@
+﻿@page "/risk-analysis/garch-calculator"
+@using FinancialRiskEngine.Client.Components.CalculationInfo
+@using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Services
+@using FinancialRiskEngine.Engine.Calculators
+@using FinancialRiskEngine.Engine.Classes.Financial
+@inject FileService _fileService
+
+<div style="display: inline-flex">
+    <div style="width: 50vw; margin-left: 1.5em; margin-top: 1.5em">
+        <MudStack Spacing="4">
+            <MudCard Elevation="3">
+                <MudCardContent Style="text-align: center">
+                    <div style="display: inline-flex">
+                        <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" Style="margin:1em">Intercept = @_alpha_0.ToString("F7")</MudChip>
+                        <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" Style="margin:1em">Alpha1 = @_alpha_1.ToString("F3")</MudChip>
+                        <MudChip T="string" Variant="Variant.Outlined" Color="Color.Primary" Style="margin:1em">Beta = @_beta.ToString("F3")</MudChip>
+                    </div>
+                    <MudGrid Style="margin-bottom:1em">
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_alpha_0" Min="0" Max="0.0001" Label="Alpha[0] (Intercept)" Variant="Variant.Outlined" Step="0.000001" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_alpha_1" Min="0" Max="1" Label="Alpha[1]" Variant="Variant.Outlined" Step="0.01" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_beta" Min="0" Max="1" Label="Beta" Variant="Variant.Outlined" Step="0.01" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_chartDays" Min="100" Max="@Math.Max(100, SP500.Count())" Label="Number of days represented in chart" Variant="Variant.Outlined" Step="50" />
+                        </MudItem>
+                    </MudGrid>
+                    @if(_alpha_1 + _beta > 1)
+                    {
+                        <MudAlert Severity="Severity.Error" Variant="Variant.Filled" Dense="true">A stable GARCH(1,1) process requires that alpha1 + beta be less than 1</MudAlert>
+                    }
+                    <MudAlert Severity="Severity.Normal">This is the S&P 500 returns and the GARCH(1,1) volatility analysis</MudAlert>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ComputeGARCH" Style="margin: 1em">Compute GARCH(1,1)</MudButton>
+
+                </MudCardContent>
+            </MudCard>
+            <MudCard>
+                <MudTabs Elevation="2" Rounded="true" ApplyEffectsToContainer="true" PanelClass="pa-6">
+                    <MudTabPanel Text="Time Chart">
+                        @if (GARCHValues.Count() > 0)
+                        {
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">
+                                We can observe how volatility moves in clusters.
+                            </MudAlert>
+                            <PointsAndLineChart PointValues="SP500.TakeLast(_chartDays).ToList()" PointsLabel="S&P 500 Returns"
+                                                LineValues="GARCHValues.TakeLast(_chartDays).ToList()" LineLabel="GARCH"
+                                                ContainerId="test2" Height="40" Width="40" />
+                            <TimeSeriesWithBand PointValues="SP500.TakeLast(100).ToList()" Label="S&P 500 Returns"
+                                                LineValues="GARCHValues.TakeLast(100).ToList()"
+                                                ContainerId="test3" Height="40" Width="40" />
+                        }
+                    </MudTabPanel>
+                    <MudTabPanel Text="Table">
+                        <p>Not yet implemented</p>
+                    </MudTabPanel>
+                    <CalculationInfoFormulas>
+                        <p>
+                            Similarly to EWMA, GARCH is a way to model volatility clustering. Because volatility is not independent,
+                            but rather moves in clusters, we should give more weight to the previous days volatility measures than the 
+                            historic average to determine today's volatility.
+                        </p>
+                        <p>
+                            The formula for GARCH(1,1) is the following:
+                        </p>
+                        @if (GARCHValues.Count() > 0)
+                        {
+                            <MultipleReturnsLineChart ListPriceSimulations="ListPriceSimulations" ContainerId="test" Height="40" Width="40" Field="return" />
+                        }
+                    </CalculationInfoFormulas>
+                </MudTabs>
+                @if (_loading)
+                {
+                    <MudProgressLinear Color="Color.Primary" Indeterminate="true" Class="my-7" />
+                }
+                else
+                {
+
+                }
+            </MudCard>
+        </MudStack>
+    </div>
+</div>
+
+@code {
+    private List<Price> VolatilityValues = new List<Price>();
+    private List<Price> SP500 = new List<Price>();
+    private List<Price> GARCHValues = new List<Price>();
+
+    private bool _loading = false;
+
+    private double _alpha_0 = 0.000002;
+    private double _alpha_1 = 0.13;
+    private double _beta = 0.86;
+    private int _chartDays = 300;
+
+    private List<List<Price>> ListPriceSimulations = new List<List<Price>>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await ComputeGARCH();
+    }
+
+    private async Task ComputeGARCH()
+    {
+        _loading = true;
+        StateHasChanged();
+        GARCHValues = new List<Price>();
+
+        SP500 = (await _fileService.GetSPReturns()).OrderBy(p => p.Date).ToList();
+
+        var garch = VolatilityEstimationCalculator.ComputeGARCH(SP500, _alpha_0, _alpha_1, _beta).OrderBy(v => v.Date).ToList();
+
+        for (int i = 0; i < garch.Count; i++)
+        {
+            if (i == 0)
+            {
+                GARCHValues.Add(new Price
+                {
+                    Date = SP500[0].Date,
+                    Open = SP500[0].Open,
+                        Close = SP500[0].Open + (SP500[0].Open * garch[0].Volatility)
+                });
+                continue;
+            }
+
+            GARCHValues.Add(new Price
+            {
+                Date = SP500[i].Date,
+                Open = SP500[i].Open,
+                    Close = SP500[i].Open + (SP500[i].Open * garch[i - 1].Volatility)
+            });
+        }
+        SetListOfPrices();
+        _loading = false;
+        StateHasChanged();
+    }
+
+    private void SetListOfPrices()
+    {
+        ListPriceSimulations = new List<List<Price>>
+        {
+            GARCHValues.TakeLast(_chartDays).ToList()
+        };
+    }
+}

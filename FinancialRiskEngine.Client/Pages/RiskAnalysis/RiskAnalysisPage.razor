@@ -16,9 +16,9 @@
         <SecondaryCard Title="EWMA Model"
         Description="Example of an EWMA model to predict volatility on the S&P 500"
         OnClick="@DisplayEWMACalculatorComponent" />
-        <SecondaryCard Title="GARCH Model"
-        Description="No description"
-        Implemented="false" />
+        <SecondaryCard Title="GARCH(1,1) Model"
+        Description="Example of an EWMA model to predict volatility on the S&P 500"
+        OnClick="@DisplayGARCHCalculatorComponent" />
     </MudGrid>
 </div>
 
@@ -31,5 +31,10 @@
     private void DisplayEWMACalculatorComponent()
     {
         _navigation.NavigateTo("/risk-analysis/ewma-calculator");
+    }
+
+    private void DisplayGARCHCalculatorComponent()
+    {
+        _navigation.NavigateTo("/risk-analysis/garch-calculator");
     }
 }
