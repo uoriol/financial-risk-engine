@@ -27,6 +27,9 @@
     [Parameter]
     public string Field { get; set; } = "close";
 
+    [Parameter]
+    public bool ShowPeriods { get; set; } = false;
+
     public string CustomStyle => "height: " + Height + "vh; width: " + Width + "vw";
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -35,10 +38,10 @@
         {
             if (PerformanceMeasureResults.Count() == ListPriceSimulations?.Count())
             {
-                await jsInterop.InvokeVoidAsync("representSimulation", ListPriceSimulations, Field, ContainerId, PerformanceMeasureResults);
+                await jsInterop.InvokeVoidAsync("representSimulation", ListPriceSimulations, Field, ShowPeriods, ContainerId, PerformanceMeasureResults);
             } else
             {
-                await jsInterop.InvokeVoidAsync("representSimulation", ListPriceSimulations, Field, ContainerId);
+                await jsInterop.InvokeVoidAsync("representSimulation", ListPriceSimulations, Field, ShowPeriods, ContainerId);
             }
             
         }

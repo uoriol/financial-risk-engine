@@ -1,4 +1,4 @@
-﻿function representSimulation(priceData, field, divId, measureRiskValues = undefined) {
+﻿function representSimulation(priceData, field, volatilityRegions, divId, measureRiskValues = undefined) {
     //console.log(divId);
     //console.log(priceData);
     const chartConfig = {
@@ -25,6 +25,11 @@
         zoom: { enabled: true, type: "drag" },
         bindto: "#" + divId
     };
+
+    if (volatilityRegions) {
+        let regions = getHighVolatilityRegions(priceData[0], field);
+        chartConfig.regions = regions;
+    }
 
     // Only apply custom colors if measureRiskValues is not null/undefined
     if (measureRiskValues != undefined && Array.isArray(measureRiskValues)) {
@@ -56,6 +61,46 @@
             }, timePass);
         }
     }
+}
+
+function getHighVolatilityRegions(priceData, field, threshold = 1.3, windowSize = 5) {
+    const values = priceData.map(d => d[field]);
+    const dates = priceData.map(d => d.date);
+
+    const globalAvg = values.reduce((a, b) => a + b, 0) / values.length;
+    const rolling = rollingAverage(values, windowSize);
+
+    const regions = [];
+    let regionStart = null;
+
+    for (let i = 0; i < rolling.length; i++) {
+        if (rolling[i] != null && rolling[i] > threshold * globalAvg) {
+            if (!regionStart) regionStart = dates[i];
+        } else if (regionStart) {
+            regions.push({ start: regionStart, end: dates[i - 1] });
+            regionStart = null;
+        }
+    }
+
+    if (regionStart) {
+        regions.push({ start: regionStart, end: dates[dates.length - 1] });
+    }
+
+    return regions;
+}
+
+function rollingAverage(arr, windowSize) {
+    const result = [];
+    for (let i = 0; i < arr.length; i++) {
+        if (i < windowSize - 1) {
+            result.push(null);
+            continue;
+        }
+        const slice = arr.slice(i - windowSize + 1, i + 1);
+        const avg = slice.reduce((a, b) => a + b, 0) / windowSize;
+        result.push(avg);
+    }
+    return result;
 }
 
 function plotLineWithBand(priceData1, priceData2, divId, labelLine = "Main") {
