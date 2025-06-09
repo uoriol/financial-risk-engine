@@ -67,10 +67,10 @@ function plotLineWithBand(priceData1, priceData2, divId, labelLine = "Main") {
     priceData1.forEach((d, i) => {
         const date = d.date;
         const base = d.close;
-        const estimation = priceData2[i].close;
+        const vol = priceData1[i].open * priceData2[i].return;
 
-        const lower = priceData1[i].open - (priceData1[i].open * priceData2[i].return); // Add volatility to the lower band
-        const upper = priceData1[i].open + (priceData1[i].open * priceData2[i].return); // Add volatility to the upper band
+        const lower = priceData1[i].open - (vol); // Add volatility to the lower band
+        const upper = priceData1[i].open + (vol); // Add volatility to the upper band
 
         x.push(date);
         mainLine.push(base);

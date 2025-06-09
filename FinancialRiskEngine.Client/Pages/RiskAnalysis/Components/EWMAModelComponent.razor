@@ -208,14 +208,14 @@
             {
                 Date = SP500[i].Date,
                 Open = SP500[i].Open,
-                    Close = SP500[i - 1].Close + (SP500[i - 1].Close * ewma[i - 1].Volatility)
+                    Close = SP500[i].Open + (SP500[i].Open * ewma[i - 1].Volatility)
             });
 
             EWMAValues_APPROXIMATION.Add(new Price
-                {
-                    Date = SP500[i].Date,
-                Open = SP500[i].Open,
-                Close = SP500[i - 1].Close + (SP500[i - 1].Close * ewma_APPROX[i - 1].Volatility)
+            {
+                Date = SP500[i].Date,
+                    Open = SP500[i].Open,
+                    Close = SP500[i].Open + (SP500[i].Open * ewma_APPROX[i - 1].Volatility)
             });
 
             if (EWMAValues[i].Close  == 0)
