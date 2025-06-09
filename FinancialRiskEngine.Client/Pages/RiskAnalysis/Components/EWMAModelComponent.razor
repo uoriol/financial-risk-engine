@@ -1,5 +1,6 @@
 ﻿@page "/risk-analysis/ewma-calculator"
 @using FinancialRiskEngine.Client.Components.CalculationInfo
+@using FinancialRiskEngine.Client.Components.Charts
 @using FinancialRiskEngine.Client.Services
 @using FinancialRiskEngine.Engine.Calculators
 @using FinancialRiskEngine.Engine.Classes.Financial
@@ -19,9 +20,7 @@
                             <MudNumericField @bind-Value="_chartDays" Min="100" Max="@Math.Max(100, SP500.Count())" Label="Number of days represented in chart" Variant="Variant.Outlined" Step="50" />
                         </MudItem>
                     </MudGrid>
-                    <MudAlert Severity="Severity.Normal">This is the S&P 500 returns and the EWMA volatility analysis prediction</MudAlert>
-                    <MudAlert Severity="Severity.Info" Style="text-align: left">The <span style="color: darkorange">orange</span> line represent the actual formula, the
-                        <span style="color: green">green</span> line represent the approximation (more information on the formulas tab)</MudAlert>
+                    <MudAlert Severity="Severity.Normal">This is the S&P 500 returns and the EWMA volatility analysis</MudAlert>
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ComputeEWMA" Style="margin: 1em">Compute EWMA</MudButton>
 
                 </MudCardContent>
@@ -31,7 +30,15 @@
                     <MudTabPanel Text="Time Chart">
                         @if (EWMAValues.Count() > 0)
                         {
-                            <FinancialRiskEngine.Client.Components.Charts.MultipleReturnsLineChart ListPriceSimulations="ListPriceSimulations" ContainerId="test" Height="40" Width="40" />
+                            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined">We can observe how volatility moves in clusters. EWMA and other models 
+                                attempt to capture this.
+                            </MudAlert>
+                            <PointsAndLineChart PointValues="SP500.TakeLast(_chartDays).ToList()" PointsLabel="S&P 500 Returns" 
+                            LineValues="EWMAValues.TakeLast(_chartDays).ToList()" LineLabel="EWMA"
+                            ContainerId="test2" Height="40" Width="40" />
+                            <TimeSeriesWithBand PointValues="SP500.TakeLast(100).ToList()" Label="S&P 500 Returns"
+                            LineValues="EWMAValues.TakeLast(100).ToList()"
+                            ContainerId="test3" Height="40" Width="40" />
                         }
                     </MudTabPanel>
                     <MudTabPanel Text="Table">
@@ -123,7 +130,15 @@
                             \text{EWMA}_t \approx (1 - \lambda) \sum_{i=1}^{N} \lambda^{i-1} \cdot r_{t-i}^2
                             \]
                         </p>
-                        <p>(We are applying this formula in the <span style="color: green">green</span> line in the chart)</p>
+                        <p>(We are applying this formula in the <span style="color: darkorange">orange</span> line in the chart)</p>
+                        @if (EWMAValues.Count() > 0)
+                        {
+                            <MudAlert Severity="Severity.Info" Style="text-align: left">
+                                The <span style="color: blue">blue</span> line represent the actual formula, the
+                                <span style="color: darkorange">orange</span> line represent the approximation
+                            </MudAlert>
+                            <MultipleReturnsLineChart ListPriceSimulations="ListPriceSimulations" ContainerId="test" Height="40" Width="40" Field="return" />
+                        }
                     </CalculationInfoFormulas>
                 </MudTabs>
                 @if (_loading)
@@ -148,8 +163,8 @@
     private bool _loading = false;
 
     private double _lambda => 1 - ((double)1/_nDays);
-    private int _nDays = 3;
-    private int _chartDays = 100;
+    private int _nDays = 12;
+    private int _chartDays = 300;
 
     private List<List<Price>> ListPriceSimulations = new List<List<Price>>();
 
@@ -172,19 +187,17 @@
 
         for (int i = 0; i < ewma.Count; i++)
         {
-            if (ewma[i].Volatility != ewma_APPROX[i].Volatility && i > 900)
-            {
-                Console.WriteLine($"EWMA values do not match at index {i}: {ewma[i].Volatility} vs {ewma_APPROX[i].Volatility} for date {ewma[i].Date}");
-            }
             if(i == 0)
             {
                 EWMAValues.Add(new Price
                 {
+                    Date = SP500[0].Date,
                     Open = SP500[0].Open,
                     Close = SP500[0].Open + (SP500[0].Open * ewma[0].Volatility)
                 });
                 EWMAValues_APPROXIMATION.Add(new Price
-                {
+                    {
+                        Date = SP500[0].Date,
                     Open = SP500[0].Open,
                     Close = SP500[0].Open + (SP500[0].Open * ewma_APPROX[0].Volatility)
                 });
@@ -193,12 +206,14 @@
 
             EWMAValues.Add(new Price
             {
+                Date = SP500[i].Date,
                 Open = SP500[i].Open,
                     Close = SP500[i - 1].Close + (SP500[i - 1].Close * ewma[i - 1].Volatility)
             });
 
             EWMAValues_APPROXIMATION.Add(new Price
-            {
+                {
+                    Date = SP500[i].Date,
                 Open = SP500[i].Open,
                 Close = SP500[i - 1].Close + (SP500[i - 1].Close * ewma_APPROX[i - 1].Volatility)
             });
@@ -217,7 +232,6 @@
     {
         ListPriceSimulations = new List<List<Price>>
         {
-            SP500.TakeLast(_chartDays).ToList(),
             EWMAValues.TakeLast(_chartDays).ToList(),
             EWMAValues_APPROXIMATION.TakeLast(_chartDays).ToList()
         };

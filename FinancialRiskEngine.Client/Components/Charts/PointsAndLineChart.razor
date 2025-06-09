@@ -3,11 +3,15 @@
 @inject IJSRuntime jsInterop
 
 <div id="@ContainerId" style="@CustomStyle"></div>
+@* <div id="anomaly" style="@CustomStyle"></div> *@
 
 
 @code {
     [Parameter]
-    public List<List<Price>>? ListPriceSimulations { get; set; } = null;
+    public List<Price> PointValues { get; set; } = new List<Price>();
+
+    [Parameter]
+    public List<Price> LineValues { get; set; } = new List<Price>();
 
     [Parameter]
     public string ContainerId { get; set; } = "div-id-" + new Random().NextSingle().ToString();
@@ -19,13 +23,10 @@
     public int Height { get; set; } = 20;
 
     [Parameter]
-    public PerformanceMeasure? PerformanceMeasure { get; set; } = null;
+    public string PointsLabel { get; set; } = "Actual";
 
     [Parameter]
-    public List<double> PerformanceMeasureResults { get; set; } = new List<double>();
-
-    [Parameter]
-    public string Field { get; set; } = "close";
+    public string LineLabel { get; set; } = "Modelled";
 
     public string CustomStyle => "height: " + Height + "vh; width: " + Width + "vw";
 
@@ -33,14 +34,8 @@
     {
         if (firstRender)
         {
-            if (PerformanceMeasureResults.Count() == ListPriceSimulations?.Count())
-            {
-                await jsInterop.InvokeVoidAsync("representSimulation", ListPriceSimulations, Field, ContainerId, PerformanceMeasureResults);
-            } else
-            {
-                await jsInterop.InvokeVoidAsync("representSimulation", ListPriceSimulations, Field, ContainerId);
-            }
-            
+            await jsInterop.InvokeVoidAsync("plotPointsAndLine", PointValues, LineValues, ContainerId, PointsLabel, LineLabel);
+            // await jsInterop.InvokeVoidAsync("plotLineWithBand", PointValues, LineValues, "anomaly");
         }
     }
 }

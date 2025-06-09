@@ -1,0 +1,36 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+@using static FinancialRiskEngine.Client.Components.CalculationInfo.PerformanceIndicator
+@inject IJSRuntime jsInterop
+
+<div id="@ContainerId" style="@CustomStyle"></div>
+
+
+@code {
+    [Parameter]
+    public List<Price> PointValues { get; set; } = new List<Price>();
+
+    [Parameter]
+    public List<Price> LineValues { get; set; } = new List<Price>();
+
+    [Parameter]
+    public string ContainerId { get; set; } = "div-id-" + new Random().NextSingle().ToString();
+
+    [Parameter]
+    public int Width { get; set; } = 20;
+
+    [Parameter]
+    public int Height { get; set; } = 20;
+
+    [Parameter]
+    public string Label { get; set; } = "Actual";
+
+    public string CustomStyle => "height: " + Height + "vh; width: " + Width + "vw";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await jsInterop.InvokeVoidAsync("plotLineWithBand", PointValues, LineValues, ContainerId, Label);
+        }
+    }
+}
