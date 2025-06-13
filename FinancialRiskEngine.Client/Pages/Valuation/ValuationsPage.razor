@@ -1,0 +1,18 @@
+﻿@page "/valuation"
+@using FinancialRiskEngine.Client.Components.Display
+@inject NavigationManager _navigation
+
+<div style="margin: 3em">
+    <MudGrid>
+        <SecondaryCard Title="IRR Calculator"
+                       Description="Define cashflows and compute the IRR."
+                       OnClick="@DisplayIRRCalculatorComponent" />
+    </MudGrid>
+</div>
+
+@code {
+    private void DisplayIRRCalculatorComponent()
+    {
+        _navigation.NavigateTo("/valuation/irr-calculator");
+    }
+}

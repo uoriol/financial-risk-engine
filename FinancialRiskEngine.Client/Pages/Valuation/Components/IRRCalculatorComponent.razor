@@ -1,0 +1,171 @@
+﻿@page "/valuation/irr-calculator"
+@using System.Net.Http.Json
+@using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Components.Generators.Cashflows
+@using FinancialRiskEngine.Engine.Calculators
+@using FinancialRiskEngine.Engine.Classes.Financial
+
+<div style="display: inline-flex; width: 100%">
+    <div style="width: 50%">
+        <MudPaper Style="color: #fafafa">
+            <MudExpansionPanels Style="margin: 1em; padding-top: 1em;">
+                <MudExpansionPanel Text="Add Cashflows Manually" MaxHeight="150">
+                    <MudGrid Style="margin-bottom:1em">
+                        <MudItem xs="12" sm="6">
+                            <MudDatePicker DateChanged="@UpdateDate" Label="Date" Variant="Variant.Outlined" />
+                        </MudItem>
+                        <MudItem xs="12" sm="6">
+                            <MudNumericField @bind-Value="_newCashFlow.Amount" Label="Amount" Variant="Variant.Outlined" />
+                        </MudItem>
+                    </MudGrid>
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@AddCashflow" Style="margin: 1em">Add Cashflow</MudButton>
+                </MudExpansionPanel>
+                <MudExpansionPanel Text="Generate Bond Payoff" MaxHeight="500">
+                    <BondCashflowGeneratorComponent OnCashFlowsGenerated="OnBondPayoutGenerated" />
+                </MudExpansionPanel>
+            </MudExpansionPanels>
+
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ComputeIRR" Style="margin: 1em">Compute IRR</MudButton>
+        </MudPaper>
+        
+        <MudPaper Style="margin: 1em">
+            <div>
+                @if (_irr != null)
+                {
+                    <div style="padding:3em; background: black; color: white">
+                        <p style="color: yellow">IRR: @_irr.Value.ToString("P2")</p>
+                        @for (int i = 0; i < _estimationLowerBound.Count(); i++)
+                        {
+                            <p>@_estimationLowerBound[i]        @_estimationUpperBound[i]</p>
+                        }
+                    </div>
+                }
+            </div>
+        </MudPaper>
+
+    </div>
+    <div style="width: 50%">
+        <MudPaper Style="margin: 1em; padding: 1em">
+            <MudDataGrid T="CashFlow" Items="@Cashflows" ReadOnly="@_readOnly" EditMode="@(_isCellEditMode ? DataGridEditMode.Cell : DataGridEditMode.Form)"
+                         StartedEditingItem="@StartedEditingItem" CanceledEditingItem="@CanceledEditingItem" CommittedItemChanges="@CommittedItemChanges"
+                         Bordered="true" Dense="true" EditTrigger="@(_editTriggerRowClick ? DataGridEditTrigger.OnRowClick : DataGridEditTrigger.Manual)">
+                <Columns>
+                    <PropertyColumn Editable="true" Property="x => x.Date" Title="Date" />
+                    <PropertyColumn Property="x => x.Amount" />
+                    <TemplateColumn Hidden="@(_isCellEditMode || _readOnly || _editTriggerRowClick)" CellClass="d-flex justify-end">
+                        <CellTemplate>
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" OnClick="() => DeleteCashflow(context.Item)" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="CashFlow" />
+                </PagerContent>
+            </MudDataGrid>
+
+            <MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="@ClearCashflows" Style="margin: 1em">Clear Cashflows</MudButton>
+        </MudPaper>
+        <MudPaper Style="margin: 1em; padding: 1em">
+            <CashflowsChart CashFlows="@Cashflows" />
+        </MudPaper>
+    </div>
+</div>
+
+
+@code {
+    // With example initial data
+    private List<CashFlow> Cashflows = new List<CashFlow>()
+    {
+        new CashFlow()
+        {
+            Date = DateTime.Today,
+            Amount = -1000
+        },
+        new CashFlow()
+        {
+            Date = DateTime.Today.AddYears(1),
+            Amount = 50
+        },
+        new CashFlow()
+        {
+            Date = DateTime.Today.AddYears(1),
+            Amount = 1050
+        }
+    };
+    private bool _readOnly = false;
+    private bool _isCellEditMode = false;
+    private List<string> _events = new();
+    private bool _editTriggerRowClick = false;
+    private double? _irr = null;
+    private List<double> _estimationLowerBound = new List<double>();
+    private List<double> _estimationUpperBound = new List<double>();
+
+    private CashFlow _newCashFlow = new CashFlow();
+
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    public async Task OnBondPayoutGenerated(List<CashFlow> cashFlows)
+    {
+        Cashflows = cashFlows;
+    }
+
+    private void DeleteCashflow(CashFlow flow)
+    {
+        Cashflows.Remove(flow);
+    }
+
+    private async Task UpdateDate(DateTime? date)
+    {
+        _newCashFlow.Date = date == null ? DateTime.Now : (DateTime)date;
+    }
+
+    private async Task ClearCashflow()
+    {
+        _newCashFlow = new CashFlow();
+    }
+
+    private async Task ClearCashflows()
+    {
+        Cashflows = new List<CashFlow>();
+    }
+
+    private async Task ComputeIRR()
+    {
+        try
+        {
+            (_irr, _estimationLowerBound, _estimationUpperBound) = IRRCalculator.ComputeIRR(Cashflows);
+        } catch(Exception ex)
+        {
+            // Write to user ... unable to converge
+        }
+    }
+
+    private async Task AddCashflow()
+    {
+        // Validate cashflow
+        Cashflows.Add(_newCashFlow);
+        await ClearCashflow();
+    }
+
+    // events
+    void StartedEditingItem(CashFlow item)
+    {
+        _events.Insert(0, $"Event = StartedEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+    }
+
+    void CanceledEditingItem(CashFlow item)
+    {
+        _events.Insert(0, $"Event = CanceledEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+    }
+
+    void CommittedItemChanges(CashFlow item)
+    {
+        _events.Insert(0, $"Event = CommittedItemChanges, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+    }
+}

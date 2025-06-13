@@ -1,0 +1,75 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+@inject IJSRuntime JS
+
+<MudPaper Class="doc-section-component-container">
+    @if (_series.Any())
+    {
+        @* <div style="width:100%">
+            <div id="cashflow-chart"></div>
+        </div> *@
+        <MudChart ChartType="ChartType.Bar" ChartSeries="@_series" @bind-SelectedIndex="_index" XAxisLabels="@_xAxisLabels" Width="@_width" Height="@_height" AxisChartOptions="_axisChartOptions"></MudChart>
+    }
+</MudPaper>
+
+
+@code {
+    [Parameter]
+    public List<CashFlow> CashFlows { get; set; } = new List<CashFlow>();
+
+    private List<ChartSeries> _series = new List<ChartSeries>()
+    {
+    };
+    private string[] _xAxisLabels = { };
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Group by year
+        if (CashFlows.Any())
+        {
+            var groupedCFs = CashFlows.GroupBy(x => x.Date.Year).Select(y => new { Year = y.Key, IN = y.Where(z => z.Amount > 0).Sum(z => z.Amount), OUT = y.Where(z => z.Amount < 0).Sum(z => z.Amount) });
+            var currentYear = groupedCFs.Min(x => x.Year);
+            var maxYear = groupedCFs.Max(x => x.Year);
+            var inData = new List<double>();
+            var outData = new List<double>();
+            var labels = new List<string>();
+            do
+            {
+                labels.Add(currentYear.ToString());
+                if (groupedCFs.Where(x => x.Year == currentYear).Any())
+                {
+                    var dateData = groupedCFs.Where(x => x.Year == currentYear).First();
+                    inData.Add(dateData.IN);
+                    outData.Add(dateData.OUT);
+                }
+                else
+                {
+                    inData.Add(0);
+                    outData.Add(0);
+                }
+                currentYear++;
+            }
+            while (currentYear <= maxYear);
+            _series = new List<ChartSeries>()
+            {
+                new ChartSeries() { Name = "IN", Data = inData.ToArray() },
+                new ChartSeries() { Name = "OUT", Data = outData.ToArray() },
+            };
+            _xAxisLabels = labels.ToArray();
+            // await JS.InvokeVoidAsync("CreateCashflowBarChart", _xAxisLabels, inData, outData, "cashflow-chart");
+        }
+    }
+
+    private int _index = -1; //default value cannot be 0 -> first selectedindex is 0.
+    private string _width = "100%";
+    private string _height = "350px";
+    private AxisChartOptions _axisChartOptions = new AxisChartOptions()
+    {
+        MatchBoundsToSize = true,
+        XAxisLabelRotation = 50
+    };
+}

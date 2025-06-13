@@ -1,0 +1,58 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Financial
+@using FinancialRiskEngine.Engine.Generators
+@using static FinancialRiskEngine.Engine.Enums.Enums
+
+<MudGrid Style="margin-bottom:1em">
+    <MudItem xs="12" sm="6">
+        <MudDatePicker DateChanged="@UpdateInitialDate" Label="Date" Variant="Variant.Outlined" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudDatePicker DateChanged="@UpdateMaturityDate" Label="Date" Variant="Variant.Outlined" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudNumericField @bind-Value="_principal" Label="Principal" Variant="Variant.Outlined" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudNumericField @bind-Value="_paymentAmount" Label="Payment" Variant="Variant.Outlined" />
+    </MudItem>
+    <MudItem xs="12" sm="6">
+        <MudSelect T="PaymentFrequency" Label="Payment Frequency" @bind-Value="_paymentFrequency" Style="margin-bottom: 1em">
+            @foreach (var freq in Enum.GetValues<PaymentFrequency>())
+            {
+                <MudSelectItem Value="freq">@freq</MudSelectItem>
+            }
+        </MudSelect>
+    </MudItem>
+</MudGrid>
+<MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@GenerateCashflows" Style="margin: 1em">Generate Cashflows</MudButton>
+
+@code {
+    [Parameter]
+    public EventCallback<List<CashFlow>> OnCashFlowsGenerated { get; set; }
+
+    private DateTime _initialDate = DateTime.Today;
+    private double _principal = 1000;
+    private int _paymentAmount = 30;
+    private PaymentFrequency _paymentFrequency = PaymentFrequency.ANNUALLY;
+    private DateTime _maturityDate = DateTime.Today.AddYears(5);
+
+    private async Task GenerateCashflows()
+    {
+        await OnCashFlowsGenerated.InvokeAsync(CashflowGenerator.GenerateBondCashFlows(_initialDate, _principal, _paymentAmount, _paymentFrequency, _maturityDate));
+    }
+
+    private async Task UpdateInitialDate(DateTime? date)
+    {
+        _initialDate = date == null ? DateTime.Today : (DateTime)date;
+    }
+
+    private async Task UpdateMaturityDate(DateTime? date)
+    {
+        _maturityDate = date == null ? _initialDate.AddYears(5) : (DateTime)date;
+    }
+
+    private async Task Validate()
+    {
+        // Check dates etc
+    }
+}
