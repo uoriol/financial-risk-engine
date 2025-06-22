@@ -67,6 +67,32 @@
                         <p>
                             The formula for GARCH(1,1) is the following:
                         </p>
+                        <p>
+                            \[
+                            \sigma_t^2 = \omega + \alpha_1 \epsilon_{t-1}^2 + \beta_1 \sigma_{t-1}^2
+                            \]
+                        </p>
+                        <div style="text-align: left">
+                            <p>where</p>
+                            <p>
+                                \( \sigma_t^2 \) is the conditional variance at time t
+                            </p>
+                            <p>
+                                \( \omega \) is the constant term (determines the base level of volatility)
+                            </p>
+                            <p>
+                                \( \alpha_1 \) is the ARCH parameter (sensitivity to short-term shock effects, measures reaction of volatility to new information. A high ARCH term means large shocks increase volatility significantly)
+                            </p>
+                            <p>
+                                \( \epsilon_{t-1}^2 \) is the squared residual from the previous time step (*)
+                            </p>
+                            <p>
+                                \( \beta_1 \) is the GARCH parameter (persistence of volatility over time. A high GARCH term means volatility remains high for a long time)
+                            </p>
+                            <p>
+                                \( \sigma_{t-1}^2 \) is the conditional variance at time t-1
+                            </p>
+                        </div>
                         @if (GARCHValues.Count() > 0)
                         {
                             <MultipleReturnsLineChart ListPriceSimulations="ListPriceSimulations" ContainerId="test" Height="40" Width="40" Field="return" ShowPeriods="true" />

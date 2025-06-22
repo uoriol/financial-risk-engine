@@ -1,0 +1,18 @@
+﻿@page "/arbitrage"
+@using FinancialRiskEngine.Client.Components.Display
+@inject NavigationManager _navigation
+
+<div style="margin: 3em">
+    <MudGrid>
+        <SecondaryCard Title="Cash-and-carry arbitrage"
+                       Description="Define spot price, future's prices and interest cost, find cash-and-carry arbitrage opportunities."
+                       OnClick="DisplayCashAndCarryFinderComponent" />
+    </MudGrid>
+</div>
+
+@code {
+    private void DisplayCashAndCarryFinderComponent()
+    {
+        _navigation.NavigateTo("/arbitrage/cash-and-carry");
+    }
+}

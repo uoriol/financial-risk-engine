@@ -11,6 +11,8 @@
         <MainCard Title="Risk/Return Analysis" ImageLink="/img/efficientfrontier.png" OnButtonClicked="NavigateToRiskReturnAnalysisPage" Loading="@_loadingTemplates" />
         <MainCard ImageLink="/img/stockmarket.png" Title="Risk Analysis" Loading="@_loadingTemplates" OnButtonClicked="NavigateToRiskAnalysisPage" />
         <MainCard ImageLink="/img/options.jpg" Title="Options" OnButtonClicked="NavigateToOptionsPage" Loading="@_loadingTemplates" />
+        <MainCard ColorCode="#21943f" Title="Valuations" Loading="@_loadingTemplates" OnButtonClicked="NavigateToValuationsPage" />
+        <MainCard ColorCode="#a162a1" Title="Arbitrage" Loading="@_loadingTemplates" OnButtonClicked="NavigateToArbitragePage" />
         <MainCard ImageLink="/img/documents.jpeg" Title="Resources" Description="To find articles and other documents." OnButtonClicked="NavigateToResourcesPage" Loading="@_loadingTemplates" />
         <MainCard ColorCode="#e69670" Title="Configurations" Loading="@_loadingTemplates" />
     </MudGrid>
@@ -54,5 +56,15 @@
     private async Task NavigateToRiskReturnAnalysisPage()
     {
         _navigation.NavigateTo("risk-return-analysis");
+    }
+
+    private async Task NavigateToValuationsPage()
+    {
+        _navigation.NavigateTo("valuation");
+    }
+
+    private async Task NavigateToArbitragePage()
+    {
+        _navigation.NavigateTo("arbitrage");
     }
 }

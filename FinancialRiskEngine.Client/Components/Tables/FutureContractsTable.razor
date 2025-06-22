@@ -1,0 +1,61 @@
+﻿
+@using FinancialRiskEngine.Engine.Classes.Financial
+
+<MudDataGrid T="FutureContract" Items="@Futures" ReadOnly="@_readOnly" EditMode="@(_isCellEditMode ? DataGridEditMode.Cell : DataGridEditMode.Form)"
+StartedEditingItem="@StartedEditingItem" CanceledEditingItem="@CanceledEditingItem" CommittedItemChanges="@CommittedItemChanges"
+Bordered="true" Dense="true" EditTrigger="@(_editTriggerRowClick ? DataGridEditTrigger.OnRowClick : DataGridEditTrigger.Manual)">
+    <Columns>
+        <PropertyColumn Editable="true" Property="x => x.Maturity" Title="Date" />
+        <PropertyColumn Property="x => x.Price" />
+        <TemplateColumn Hidden="@(_isCellEditMode || _readOnly || _editTriggerRowClick)" CellClass="d-flex justify-end">
+            <CellTemplate>
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="@context.Actions.StartEditingItemAsync" />
+                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" Color="Color.Error" OnClick="() => DeleteFuturesContract(context.Item)" />
+            </CellTemplate>
+        </TemplateColumn>
+    </Columns>
+    <PagerContent>
+        <MudDataGridPager T="CashFlow" />
+    </PagerContent>
+</MudDataGrid>
+<MudButton Variant="Variant.Outlined" Color="Color.Error" OnClick="@ClearAllContracts" Style="margin: 1em">Clear All Contracts</MudButton>
+
+@code {
+    [Parameter]
+    public List<FutureContract> Futures { get; set; } = new List<FutureContract>();
+
+
+    private bool _readOnly = false;
+    private bool _isCellEditMode = false;
+    private List<string> _events = new();
+    private bool _editTriggerRowClick = false;
+    private double? _irr = null;
+    private List<double> _estimationLowerBound = new List<double>();
+    private List<double> _estimationUpperBound = new List<double>();
+
+    void StartedEditingItem(FutureContract item)
+    {
+        _events.Insert(0, $"Event = StartedEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+    }
+
+    void CanceledEditingItem(FutureContract item)
+    {
+        _events.Insert(0, $"Event = CanceledEditingItem, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+    }
+
+    void CommittedItemChanges(FutureContract item)
+    {
+        _events.Insert(0, $"Event = CommittedItemChanges, Data = {System.Text.Json.JsonSerializer.Serialize(item)}");
+    }
+
+
+    private void DeleteFuturesContract(FutureContract contract)
+    {
+        Futures.Remove(contract);
+    }
+
+    private void ClearAllContracts()
+    {
+        Futures.Clear();
+    }
+}

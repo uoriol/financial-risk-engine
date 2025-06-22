@@ -1,6 +1,7 @@
 ﻿using FinancialRiskEngine.Engine.Classes.Interfaces;
 using System.Text.Json.Serialization;
 using static FinancialRiskEngine.Engine.Enums.Enums;
+using static FinancialRiskEngine.Engine.Helpers.DateHelper;
 
 namespace FinancialRiskEngine.Engine.Classes.Financial
 {
@@ -43,5 +44,13 @@ namespace FinancialRiskEngine.Engine.Classes.Financial
         public decimal? High { get; set; }
         public decimal? Low { get; set; }
         public decimal? Volume { get; set; }
+    }
+
+    public class FutureContract
+    {
+        public double Price { get; set; }
+        public DateTime Maturity { get; set; }
+        public double TimeToMaturity => GetYearFraction(Maturity, DateTime.Today);
+        public int ContractSize { get; set; }
     }
 }
