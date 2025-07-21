@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static FinancialRiskEngine.Engine.Helpers.DateHelper;
 
 namespace FinancialRiskEngine.Engine.Classes.Financial
 {
@@ -21,6 +22,11 @@ namespace FinancialRiskEngine.Engine.Classes.Financial
             Date = date;
             Amount = amount;
             Description = description;
+        }
+
+        public double GetDiscountedAmount(double interestRate, DateTime date)
+        {
+            return this.Amount / Math.Pow(1 + interestRate, GetYearFraction(this.Date, date));
         }
     }
 }

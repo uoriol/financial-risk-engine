@@ -1,0 +1,85 @@
+﻿@page "/interest-rates/bond-duration-calculator"
+@inject ISnackbar Snackbar
+@using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Components.Display
+@using FinancialRiskEngine.Client.Components.Generators.Cashflows
+@using FinancialRiskEngine.Engine.Calculators
+@using FinancialRiskEngine.Engine.Classes.Financial
+@using static FinancialRiskEngine.Engine.Enums.Enums
+
+<div style="max-width: 50vw; margin-left: 3em; margin-top: 4em">
+    <MudStack Spacing="4">
+        <MudCard Elevation="3">
+            <CardTitle Title="Inputs" />
+            <MudCardContent>
+                <h3>Bond Price (optional):</h3>
+                <MudNumericField @bind-Value="_dirtyPrice" Label="Dirty Price" Variant="Variant.Outlined" />
+
+                <BondCashflowGeneratorComponent OnCashFlowsGenerated="OnBondCashFlowsGenerated" />
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@ComputeDurationOfBond" Style="margin: 1em">Compute Duration</MudButton>
+                @if(_duration != null)
+                {
+                    <h3>Duration: @_duration?.ToString("F4")</h3>
+                    <h3>Modified Duration: @_modifiedDuration?.ToString("F4")</h3>
+                    <h3>YTM: @_YTM.ToString("P4")</h3>
+                    <h3>Maturity: @CFs.Max(x => x.Date).Date.ToString("MMMM yyyy")</h3>
+                    <h3>TTM: @_TTM.ToString("F4")</h3>
+                } else
+                {
+                    <h3>Duration not computed.</h3>
+                }
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <CashflowsChart CashFlows="@CFs" />
+            </MudCardContent>
+        </MudCard>
+
+    </MudStack>
+</div>
+
+@code {
+    // Inputs
+    private List<CashFlow> CFs = new List<CashFlow>();
+    private double? _dirtyPrice = null;
+
+    // Outputs
+    private double _YTM { get; set; }
+    private double? _duration { get; set; } = null;
+    private double? _modifiedDuration { get; set; } = null;
+    private double _TTM { get; set; }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+
+    }
+
+    private async Task OnBondCashFlowsGenerated(List<CashFlow> cfs)
+    {
+        _duration = null;
+        CFs = cfs;
+        StateHasChanged();
+    }
+
+    private async Task ComputeDurationOfBond()
+    {
+        try
+        {
+            (_duration, _YTM) = DurationCalculator.ComputeDuration(CFs, bondDirtyPrice: _dirtyPrice);
+            _TTM = DurationCalculator.ComputeTimeToMaturity(CFs);
+            _modifiedDuration = DurationCalculator.ComputeModifiedDuration((double)_duration, _YTM);
+        } catch (Exception ex)
+        {
+            Snackbar.Configuration.PositionClass = Defaults.Classes.Position.TopRight;
+            Snackbar.Add($"Unable to run calculations: {ex.Message}", Severity.Error);
+        }
+    }
+}

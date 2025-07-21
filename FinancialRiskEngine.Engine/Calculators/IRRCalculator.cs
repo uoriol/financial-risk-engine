@@ -13,13 +13,10 @@ namespace FinancialRiskEngine.Engine.Calculators
 {
     public static class IRRCalculator
     {
-        public static (double, List<double>, List<double>) ComputeIRR(List<CashFlow> CFs)
+        public static (double, List<double>, List<double>) ComputeIRR(List<CashFlow> CFs, double tolerance = 0.0001, double lowerAssumption = -0.999, double higherAssumption = 10, int maxIterations = 10000)
         {
-            // Let's hard-code the assumptions
-            double assumption1 = -0.999;
-            double assumption2 = 10;
-            double tolerance = 0.0001;
-            int maxIterations = 10000;
+            double assumption1 = lowerAssumption;
+            double assumption2 = higherAssumption;
             int currentIteration = 0;
             double slideValue = 1.0;
 

@@ -13,6 +13,9 @@
         <SecondaryCard Title="Bond Yield Calculator Component"
                        Description="Calculate the yield based on par value, market value, payments, interest payment and payment periodicity."
                        OnClick="@DisplayBondYieldCalculatorComponent" />
+        <SecondaryCard Title="Bond Duration Calculator Component"
+                       Description="Generate a bond pay-out scenario and compute duration."
+                       OnClick="@DisplayBondDurationCalculatorComponent" />
     </MudGrid>
 </div>
 
@@ -30,5 +33,10 @@
     private void DisplayBondYieldCalculatorComponent()
     {
         _navigation.NavigateTo("/interest-rates/bond-yield-calculator");
+    }
+
+    private void DisplayBondDurationCalculatorComponent()
+    {
+        _navigation.NavigateTo("/interest-rates/bond-duration-calculator");
     }
 }
