@@ -99,6 +99,16 @@ namespace FinancialRiskEngine.Engine.Calculators
             }
         }
 
+        public static double GetDiscountValue(double rate, double amount, double timeToMaturity, CompoundingFrequency frequency = CompoundingFrequency.CONTINUOUS)
+        {
+            if (frequency == CompoundingFrequency.CONTINUOUS)
+            {
+                return amount * Math.Exp((double)-rate * timeToMaturity);
+            }
+            int frequencyValue = GetFrequencyValue(frequency);
+            return amount / (Math.Pow((1 + rate / frequencyValue), (frequencyValue * timeToMaturity)));
+        }
+
         public static (decimal, List<decimal>, List<decimal>) GetBondYield(decimal par, decimal price, decimal payment, decimal paymentPeriods, PaymentFrequency paymentFrequency)
         {
             // Two assumptions
