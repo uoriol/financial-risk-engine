@@ -20,7 +20,6 @@ namespace FinancialRiskEngine.Engine.Calculators
             // built a risk/free portfolio.
             tree.Root.SetOptionPriceNoArbitrage(strikePrice, riskFreeRate, stepTime);
             return tree.Root.OptionPrice;
-            throw new NotImplementedException("Option pricing calculation is not implemented yet.");
         }
     }
 }
