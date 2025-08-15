@@ -1,0 +1,52 @@
+﻿@using FinancialRiskEngine.Engine.Classes.Mathematical
+@inject IJSRuntime _jsInterop
+
+@if (ShowWarning)
+{
+    <MudAlert Severity="Severity.Warning">This is a tree, but it should be a lattice, as it has cycles and certain branches should converge</MudAlert>
+}
+
+<div class="col-12">
+    <svg id="binomialTreeChart"></svg>
+</div>
+
+@code {
+    [Parameter]
+    public BinomialTree Tree { get; set; } = new BinomialTree();
+
+    [Parameter]
+    public bool ShowWarning { get; set; } = false;
+
+    private BinomialTree? PreviousState { get; set; } = null;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            PreviousState = Tree;
+            await UpdateHistogram();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await UpdateHistogram();
+    }
+
+    public async Task UpdateHistogram()
+    {
+        if (_jsInterop is IJSInProcessRuntime)
+        {
+            await _jsInterop.InvokeVoidAsync("CreateBinomialTree", Tree, "#binomialTreeChart");
+            await Task.Yield();
+            
+        }
+
+    }
+
+    [JSInvokable("OnNodeClicked")]
+    public static void OnNodeClicked(string nodeName)
+    {
+        Console.WriteLine($"Node clicked: {nodeName}");
+    }
+}

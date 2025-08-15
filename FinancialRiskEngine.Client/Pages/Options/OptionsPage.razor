@@ -1,10 +1,16 @@
 ﻿@page "/options"
+@inject NavigationManager _navigation
 @using FinancialRiskEngine.Client.Components.Display
 
 <MudGrid>
+    <SecondaryCard Title="Binomial Pricing Model: No-arbitrage Law" Description="Price options for European options" OnClick="@DisplayNoArbitrageComponent" />
+    <SecondaryCard Title="Binomial Pricing Model: Risk-Neutrality Principles" Description="Price options for European options" Implemented="false" />
     <SecondaryCard Title="Black-Scholes-Merton Pricing Model" Description="Price options for European options" Implemented="false" />
 </MudGrid>
 
 @code {
-
+    private void DisplayNoArbitrageComponent()
+    {
+        _navigation.NavigateTo("/options/binomial-no-arbitrage-option");
+    }
 }

@@ -1,0 +1,86 @@
+﻿@page "/options/binomial-no-arbitrage-option"
+@using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Components.Display
+@using FinancialRiskEngine.Engine.Generators
+@using FinancialRiskEngine.Engine.Calculators
+@using FinancialRiskEngine.Engine.Classes.Mathematical
+
+
+<div style="margin: 3em">
+    <MudStack Spacing="4">
+        <MudCard Elevation="3">
+            <CardTitle Title="Inputs" />
+            <MudGrid Style="padding: 1em">
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_currentPrice" Label="Current Price" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_strikePrice" Label="Strike Price" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_steps" Label="Steps" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_upFactor" Min="0.1" Step="0.1" Label="Up Factor" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_downFactor" Min="0.1" Step="0.1" Label="Down Factor" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_riskFreeRate" Label="Risk Free Rate" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_monthsEachStep" Label="Months per step" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                </MudItem>
+                <MudItem xs="12" sm="4" Style="text-align: center">
+                    <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Compute" Style="margin: 1em">Compute</MudButton>
+                </MudItem>
+            </MudGrid>
+        </MudCard>
+
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <BinomialTreeChart Tree="@binomialTree" ShowWarning="true" />
+            </MudCardContent>
+        </MudCard>
+
+        <MudCard Elevation="3">
+            <MudCardContent>
+                @if (optionPrice != null)
+                {
+                    <MudAlert Severity="Severity.Success" Variant="Variant.Outlined" Square="true" Class="my-2">Option Price Today: @optionPrice</MudAlert>
+                }
+            </MudCardContent>
+        </MudCard>
+
+    </MudStack>
+</div>
+
+
+@code {
+    private BinomialTree binomialTree = new BinomialTree();
+    private double? optionPrice = null;
+    private int _steps = 2;
+    private double _riskFreeRate = 0.04;
+    private int _monthsEachStep = 3;
+    private double _upFactor = 1.1;
+    private double _downFactor = 0.9;
+    private double _strikePrice = 21;
+    private double _currentPrice = 20;
+
+    private double _timeStep => _monthsEachStep / 12.0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await Compute();
+    }
+
+    private async Task Compute()
+    {
+        binomialTree = BinomialTreeGenerator.GenerateBinomialTree(_currentPrice, _upFactor, _downFactor, steps: _steps);
+        optionPrice = OptionPricingCalculator.ComputeOptionPrice(binomialTree, _strikePrice, _riskFreeRate, _timeStep);
+        StateHasChanged();
+    }
+}
