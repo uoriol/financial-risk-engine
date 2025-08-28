@@ -4,12 +4,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static FinancialRiskEngine.Engine.Enums.Enums;
 
 namespace FinancialRiskEngine.Engine.Calculators
 {
     public static class OptionPricingCalculator
     {
-        public static double ComputeOptionPrice(BinomialTree tree, double strikePrice, double riskFreeRate = 0.04, double stepTime = 0.25)
+        public static double ComputeOptionPrice(BinomialTree tree, double strikePrice, double riskFreeRate = 0.04, 
+            double stepTime = 0.25, double continuousDividend = 0, OptionStyle style = OptionStyle.EUROPEAN)
         {
             // My idea here is that in order to apply the non-arbitrage argument to value the option, 
             // we need to start at the end of the tree and work our way back to the root.
@@ -18,7 +20,7 @@ namespace FinancialRiskEngine.Engine.Calculators
             // If we are at the last step, it is easy to define the value of the option after the step,
             // and thus can apply the no-arbitrage principle to discount the option price after having 
             // built a risk/free portfolio.
-            tree.Root.SetOptionPriceNoArbitrage(strikePrice, riskFreeRate, stepTime);
+            tree.Root.SetOptionPriceNoArbitrage(strikePrice, riskFreeRate, stepTime, continuousDividend: continuousDividend, style: style);
             return tree.Root.OptionPrice;
         }
     }

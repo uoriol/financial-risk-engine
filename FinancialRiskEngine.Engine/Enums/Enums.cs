@@ -61,5 +61,17 @@ namespace FinancialRiskEngine.Engine.Enums
 
             return "NA";
         }
+
+        public enum OptionType
+        {
+            CALL = 1,
+            PUT = 2
+        }
+
+        public enum OptionStyle
+        {
+            EUROPEAN = 1,
+            AMERICAN = 2
+        }
     }
 }

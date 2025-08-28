@@ -33,7 +33,7 @@ function CreateBinomialTree(binomialTree, divId) {
     const tree = d3.tree().nodeSize([dx, dy]);
 
     // Sort and layout
-    root.sort((a, b) => d3.descending(a.data.name, b.data.name));
+    //root.sort((a, b) => d3.descending(a.data.name, b.data.name));
     tree(root);
 
     // Compute tree extent

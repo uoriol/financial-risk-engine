@@ -1,9 +1,11 @@
 ﻿@page "/options/binomial-no-arbitrage-option"
 @using FinancialRiskEngine.Client.Components.Charts
+@using FinancialRiskEngine.Client.Components.CalculationInfo
 @using FinancialRiskEngine.Client.Components.Display
 @using FinancialRiskEngine.Engine.Generators
 @using FinancialRiskEngine.Engine.Calculators
 @using FinancialRiskEngine.Engine.Classes.Mathematical
+@using static FinancialRiskEngine.Engine.Enums.Enums
 
 
 <div style="margin: 3em">
@@ -33,6 +35,15 @@
                     <MudNumericField @bind-Value="_monthsEachStep" Label="Months per step" Variant="Variant.Outlined" />
                 </MudItem>
                 <MudItem xs="12" sm="4">
+                    <MudNumericField @bind-Value="_continuousDividend" Label="Continuous Dividend (if any)" Variant="Variant.Outlined" />
+                </MudItem>
+                <MudItem xs="12" sm="4">
+                    <MudSelect T="OptionStyle" Label="Option Style" @bind-Value="_style" Style="margin-bottom: 1em">
+                        @foreach (var style in Enum.GetValues<OptionStyle>())
+                        {
+                            <MudSelectItem Value="style">@style</MudSelectItem>
+                        }
+                    </MudSelect>
                 </MudItem>
                 <MudItem xs="12" sm="4" Style="text-align: center">
                     <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="@Compute" Style="margin: 1em">Compute</MudButton>
@@ -55,6 +66,66 @@
             </MudCardContent>
         </MudCard>
 
+        <MudCard Elevation="3">
+            <MudCardContent>
+                <CalculationInfoFormulas>
+                    <p>
+                        Like many concepts in financial theory, the assumptions underpinning this
+                        theory is the impossibility of arbitrage to exist.
+                    </p>
+                    <p>
+                        To solve for the price of the option, we only must understand what are the
+                        increase and decrease factors, the current price of the stock, the strike price
+                        of the option, and the risk free rate. As we will see later, we don't need the up and
+                        down factors, as long as we know the volatility.
+                    </p>
+                    <p>
+                        The main idea starts with building a portfolio that is risk-free. By risk-free,
+                        what is meant is that no matter the outcome (either the stock moves up, or it moves
+                        down), the payoff will be equal. To build this portfolio, we first must consider 
+                        the two outcomes. We will use the example provided by Hull in order to visualize 
+                        a specific situation. Let's say there is a stock with a current price 20$. The strike 
+                        price of the option is 21$. The up factor is 1.1, meaning the stock price after an up 
+                        move will be 22$. The down factor is 0.9, so the stock will be worth 18$ after a down move. 
+                        Let's remember that the call option payoff is the following:
+                    </p>
+                    <p>Max(S -K, 0)</p>
+                    <p>
+                        This, in turn, gives us the information to know that the call option will be worth 1$ in case 
+                        of an up movement, and 0$ in case of a down movement. If we were to build a risk-free 
+                        portfolio using a call option and a position in the stock, this would give us enough information.
+                        We could sell a call option, and hold some amount of stock. The amount of stock should be
+                        the exact amount that would make an up movement or a down movement have an equal payoff, so:
+                    </p>
+                    <p>Delta*22 - 1$ = Delta*18 - 0</p>
+                    <p>This gives us a delta of XXX. By holding this amount of stock, and selling a call option 
+                        we will receive the same payoff whether the stock goes up or down. We have build a risk-free 
+                        portfolio. This is when the no-arbitrage element comes into play. By logic, a risk-free 
+                        portfolio should earn the risk-free rate. If it earned more, we could get financing at risk-free 
+                        rate (another model assumption) and build the portfolio. After the maturity is reached, we 
+                        would pay back the interest and pocket the difference. The opposite is true.
+                    </p>
+                    <p>
+                        From here, we can actually calculate the payoff. The result is 4.5.
+                        Therefore, because the value of the portfolio at time T will be equal to 4.5, the 
+                        present value of the portfolio today should be the discounted value, i.e. 4.455.
+                    </p>
+                    <p>
+                        Finally, this tells us that because we know the price of the stock today, the 
+                        theoretical value of the portfolio today, we just need to solve for the call option 
+                        price today (which is a component of the risk-free portfolio). 
+                        ... 0.545
+                        ... explain 3 months
+                        ... explain that, because of call put parity, we can also infer the price of a put option
+                    </p>
+                    <p>
+                        \[
+                        \sigma_t^2 = \lambda \cdot \sigma_{t-1}^2 + (1 - \lambda) \cdot r_{t-1}^2
+                        \]
+                    </p>
+                </CalculationInfoFormulas>
+            </MudCardContent>
+        </MudCard>
     </MudStack>
 </div>
 
@@ -69,6 +140,8 @@
     private double _downFactor = 0.9;
     private double _strikePrice = 21;
     private double _currentPrice = 20;
+    private double _continuousDividend = 0;
+    private OptionStyle _style = OptionStyle.EUROPEAN;
 
     private double _timeStep => _monthsEachStep / 12.0;
 
@@ -80,7 +153,7 @@
     private async Task Compute()
     {
         binomialTree = BinomialTreeGenerator.GenerateBinomialTree(_currentPrice, _upFactor, _downFactor, steps: _steps);
-        optionPrice = OptionPricingCalculator.ComputeOptionPrice(binomialTree, _strikePrice, _riskFreeRate, _timeStep);
+        optionPrice = OptionPricingCalculator.ComputeOptionPrice(binomialTree, _strikePrice, _riskFreeRate, _timeStep, _continuousDividend, _style);
         StateHasChanged();
     }
 }
